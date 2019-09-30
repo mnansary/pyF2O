@@ -28,7 +28,7 @@ Forged Image To Original Image Generation
     {  
         "data_dir"     : "/home/ansary/RESEARCH/CopyMove/Data/MICC-F2000/", 
         "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "rename_flag"  : "False",
+        "rename_flag"  : 0,
     
     },  
     "test":  
@@ -64,7 +64,12 @@ Forged Image To Original Image Generation
 > To understand the charecteristics of the *.png* data please read the Docstrings of **DataSet** class from  **models/utils.py**  
 
 **NOTE:** Please wait patiently as the execution may take quite some time to be completed.  
-    
+
+### For safe operation
+1. Set **"create_dataset"** = **1** and **save_h5** and **save_tfrecord**=0 in ***config.json** . Run **dataset.py** to create the dataset images first.
+2. Set **save_h5**=**1** and **"create_dataset"** and **save_tfrecord**=0 in ***config.json** . Run **dataset.py** again to create the h5 files.
+
+
 **ENVIRONMENT DETAILS FOR dataset.py EXECUTION**  
     OS          : Ubuntu 18.04.3 LTS (64-bit) Bionic Beaver      
     Memory      : 7.7 GiB  

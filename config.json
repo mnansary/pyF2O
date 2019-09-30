@@ -24,7 +24,7 @@
     {
         "save_h5"           : 1,
         "save_tfrecord"     : 0,
-        "create_dataset"    : 1
+        "create_dataset"    : 0
     }
 }
 
