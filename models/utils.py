@@ -260,6 +260,9 @@ def get_batched_dataset(FLAGS):
     dataset =   dataset.map(_parser)
     dataset =   dataset.repeat()
     dataset =   dataset.shuffle(FLAGS.SHUFFLE_BUFFER)
-    dataset =   dataset.batch(FLAGS.BATCH_SIZE,drop_remainder=True)
+    dataset =   dataset.batch(FLAGS.BATCH_SIZE)
     
-    return dataset
+    iterator = dataset.make_one_shot_iterator()
+    image, target = iterator.get_next()
+
+    return image,target
