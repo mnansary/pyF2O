@@ -55,9 +55,9 @@ Forged Image To Original Image Generation
 
 5. Run **./create_TFRecords.py**
 
-**NOTE:** Please wait patiently as the execution may take quite some time to be completed.
-Time Taken  :   745.787709236145 s      For create_dataset.py execution  
-Time Taken  :   2711.1487460136414 s    For create_TFRecords.py execution
+**NOTE:** Please wait patiently as the execution may take quite some time to be completed.  
+> Time Taken  :   745.787709236145 s      For create_dataset.py execution  
+> Time Taken  :   2711.1487460136414 s    For create_TFRecords.py execution
 
 **ENVIRONMENT DETAILS FOR dataset.py EXECUTION**  
 
