@@ -38,7 +38,7 @@ Forged Image To Original Image Generation
     }        
 
 4. Run **./create_dataset.py**
-* If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree depending on the **PARAMS**:  
+* If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree:  
 
         F2O_DataSet  
         ├── Test  
