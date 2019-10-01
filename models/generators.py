@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf 
 
+IMAGE_DIM=256
+NUM_CHANNELS=3
 #---------------------------------UNET From Official Tensorflow pix2pix----------------------------------------
 def downsample(filters, size, apply_batchnorm=True):
     initializer = tf.random_normal_initializer(0., 0.02)
@@ -49,9 +51,9 @@ def UNET():
     ]
 
     initializer = tf.random_normal_initializer(0., 0.02)
-    last = tf.keras.layers.Conv2DTranspose(3, 4,strides=2,padding='same',kernel_initializer=initializer,activation='tanh') # (bs, 256, 256, 3)
+    last = tf.keras.layers.Conv2DTranspose(NUM_CHANNELS, 4,strides=2,padding='same',kernel_initializer=initializer,activation='tanh') # (bs, 256, 256, 3)
     concat = tf.keras.layers.Concatenate()
-    inputs = tf.keras.layers.Input(shape=[None,None,3])
+    inputs = tf.keras.layers.Input(shape=[IMAGE_DIM,IMAGE_DIM,3])
     x = inputs
 
     # Downsampling through the model
