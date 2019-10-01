@@ -53,7 +53,7 @@ Forged Image To Original Image Generation
 * The *'.png'* is a concatenated version of **ForgedImage|GroundTruth**
 > To understand the charecteristics of the *.png* data please read the Docstrings of **DataSet** class from  **models/utils.py**  
 
-5. Run **./creat_TFRecords.py**
+5. Run **./create_TFRecords.py**
 
 **NOTE:** Please wait patiently as the execution may take quite some time to be completed.
 Time Taken  :   745.787709236145 s      For create_dataset.py execution  
