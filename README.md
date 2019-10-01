@@ -59,7 +59,7 @@ Forged Image To Original Image Generation
 > Time Taken  :   745.787709236145 s      For create_dataset.py execution  
 > Time Taken  :   2711.1487460136414 s    For create_TFRecords.py execution
 
-**ENVIRONMENT DETAILS FOR dataset.py EXECUTION**  
+**ENVIRONMENT:  *create_xxxx.py* EXECUTION**  
 
     OS          : Ubuntu 18.04.3 LTS (64-bit) Bionic Beaver        
     Memory      : 7.7 GiB  
