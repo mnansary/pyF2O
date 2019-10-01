@@ -1,73 +1,66 @@
+# -*- coding: utf-8 -*-
 """
 @author: MD.Nazmuddoha Ansary
 """
 from __future__ import print_function
 from termcolor import colored
 
-import os
-import numpy as np 
-import matplotlib.pyplot as plt
+from tensorflow.keras.models import Model 
+from tensorflow.keras.layers import Input,Concatenate,Reshape,Conv2D,UpSampling2D,LeakyReLU,BatchNormalization,MaxPooling2D,Activation,Flatten,Dense,Lambda
+import tensorflow.keras.backend as K
+import numpy as np
+from keras.utils import plot_model
+#-----------------------------------------------------------------------------------------------------------------------------
+def unet(image_dim=256,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
+    # input 
+    in_image_shape=(image_dim,image_dim,nb_channels)
+    # U-Net
+    min_nb_filter=64
+    max_nb_filter=512
+    nb_conv_layers = int(np.floor(np.log(image_dim) / np.log(2)))
 
-import tensorflow as tf 
+    nb_filters = [min_nb_filter * min((max_nb_filter/min_nb_filter) , (2 ** i)) for i in range(nb_conv_layers)]
+    nb_filters = list(map(int, nb_filters))
 
-IMAGE_DIM=256
-NUM_CHANNELS=3
-#---------------------------------UNET From Official Tensorflow pix2pix----------------------------------------
-def downsample(filters, size, apply_batchnorm=True):
-    initializer = tf.random_normal_initializer(0., 0.02)
-    result = tf.keras.Sequential()
-    result.add(tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',kernel_initializer=initializer, use_bias=False))
-    if apply_batchnorm:
-        result.add(tf.keras.layers.BatchNormalization())
-    result.add(tf.keras.layers.LeakyReLU())
-    return result
-def upsample(filters, size, apply_dropout=False):
-    initializer = tf.random_normal_initializer(0., 0.02)
-    result = tf.keras.Sequential()
-    result.add(tf.keras.layers.Conv2DTranspose(filters, size, strides=2,padding='same',kernel_initializer=initializer,use_bias=False))
-    result.add(tf.keras.layers.BatchNormalization())
-    if apply_dropout:
-        result.add(tf.keras.layers.Dropout(0.5))
-    result.add(tf.keras.layers.ReLU())
-    return result
-def UNET():
-    down_stack = [  downsample(64, 4, apply_batchnorm=False), # (bs, 128, 128, 64)
-                    downsample(128, 4), # (bs, 64, 64, 128)
-                    downsample(256, 4), # (bs, 32, 32, 256)
-                    downsample(512, 4), # (bs, 16, 16, 512)
-                    downsample(512, 4), # (bs, 8, 8, 512)
-                    downsample(512, 4), # (bs, 4, 4, 512)
-                    downsample(512, 4), # (bs, 2, 2, 512)
-                    downsample(512, 4), # (bs, 1, 1, 512)
-    ]
+    ## Encoder
+    en_X=[]
+    # Input Block
+    X=Input(shape=in_image_shape,name='gen_enc_init_input')
+    In=X
 
-    up_stack = [    upsample(512, 4, apply_dropout=True), # (bs, 2, 2, 1024)
-                    upsample(512, 4, apply_dropout=True), # (bs, 4, 4, 1024)
-                    upsample(512, 4, apply_dropout=True), # (bs, 8, 8, 1024)
-                    upsample(512, 4), # (bs, 16, 16, 1024)
-                    upsample(256, 4), # (bs, 32, 32, 512)
-                    upsample(128, 4), # (bs, 64, 64, 256)
-                    upsample(64, 4), # (bs, 128, 128, 128)
-    ]
+    # Conv Blocks
+    for index,nb_filter in enumerate(nb_filters):
+        if index>0:
+            X=LeakyReLU(alpha=alpha,name='gen_enc_conv_{}_act'.format(index+1))(X)
+        X=Conv2D(nb_filter,kernel_size,name='gen_enc_conv_{}'.format(index+1),strides=strides,padding=padding)(X)
+        if index > 0:
+            X=BatchNormalization(name='gen_enc_conv_{}_bn'.format(index+1))(X)
+        en_X.append(X)
 
-    initializer = tf.random_normal_initializer(0., 0.02)
-    last = tf.keras.layers.Conv2DTranspose(NUM_CHANNELS, 4,strides=2,padding='same',kernel_initializer=initializer,activation='tanh') # (bs, 256, 256, 3)
-    concat = tf.keras.layers.Concatenate()
-    inputs = tf.keras.layers.Input(shape=[IMAGE_DIM,IMAGE_DIM,3])
-    x = inputs
 
-    # Downsampling through the model
-    skips = []
-    for down in down_stack:
-        x = down(x)
-        skips.append(x)
-    skips = reversed(skips[:-1])
-    # Upsampling and establishing the skip connections
-    for up, skip in zip(up_stack, skips):
-        x = up(x)
-        x = concat([x, skip])
+    # Decoder filters
+    nb_filters = nb_filters[:-2][::-1] 
+    if len(nb_filters) < nb_conv_layers - 1:
+        nb_filters.append(min_nb_filter)
 
-    x = last(x)
+    # UpSampling Blocks
+    for index,nb_filter in enumerate(nb_filters):
+        X = Activation("relu",name='gen_dec_conv_{}_act'.format(index+1))(X)
+        X = UpSampling2D(size=(2, 2),name='gen_dec_conv_{}_ups'.format(index+1))(X)
+        X = Conv2D(nb_filter, kernel_size, name='gen_dec_conv_{}'.format(index+1), padding="same")(X)
+        X = BatchNormalization(name='gen_dec_conv_{}_bn'.format(index+1))(X)
+        X = Concatenate(name='gen_dec_conv_{}_conc'.format(index+1))([X ,en_X[-(index+2)]])
 
-    return tf.keras.Model(inputs=inputs, outputs=x)
-#---------------------------------UNET From Official Tensorflow pix2pix----------------------------------------
+    X = Activation("relu",name='gen_dec_conv_last_act')(X)
+    X = UpSampling2D(size=(2, 2),name='gen_dec_conv_last_ups')(X)
+    X = Conv2D(nb_channels, kernel_size, name="gen_dec_conv_last", padding="same")(X)
+    X = Activation("tanh",name='gen_dec_conv_final_act')(X)
+
+    gen_unet_model = Model(inputs=[In], outputs=[X])
+
+    return gen_unet_model
+
+if __name__ == "__main__":
+    model=unet()
+    model.summary()
+    plot_model(model,to_file='UNET.png',show_shapes=True)
