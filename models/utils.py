@@ -16,7 +16,7 @@ import imageio
 import h5py
 import tensorflow as tf 
 import json
-#--------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------COMMON------------------------------------------------------------------------------------
 def LOG_INFO(log_text,p_color='green'):
     print(colored('#    LOG:','blue')+colored(log_text,p_color))
 
@@ -228,3 +228,38 @@ def to_tfrecord(image_paths,obj,r_num):
         
     LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
+def get_batched_dataset(FLAGS):
+    '''
+    This Function generates data from provided FLAGS
+    FLAGS must include:
+    TFRECORDS_DIR   = Directory of tfrecords
+    BATCH_SIZE      = Batch Size of the data
+    NUM_EPOCHS      = Total Number of epochs
+    IMAGE_DIM       = Dimension of Image
+    SHUFFLE_BUFFER  = Size for shuffle buffer > batch size
+    '''
+    def _parser(example_protocol_buffer):
+        feature ={  'target'  : tf.io.FixedLenFeature([],tf.string) ,
+                    'image'   : tf.io.FixedLenFeature([],tf.string)
+        }
+        parsed_feature=tf.parse_single_example(example_protocol_buffer,feature)
+        
+        x =   tf.image.decode_png(parsed_feature['image'],channels=3)
+        x =   tf.cast(x,tf.float32)/255.0
+        x =   tf.reshape(x,[FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,3])
+ 
+        y =   tf.image.decode_png(parsed_feature['target'],channels=3)
+        y =   tf.cast(y,tf.float32)/255.0
+        y =   tf.reshape(y,[FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,3])
+
+        return x,y 
+    
+    file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,'*.tfrecords'))
+
+    dataset =   tf.data.TFRecordDataset(file_paths)
+    dataset =   dataset.map(_parser)
+    dataset =   dataset.repeat()
+    dataset =   dataset.shuffle(FLAGS.SHUFFLE_BUFFER)
+    dataset =   dataset.batch(FLAGS.BATCH_SIZE,drop_remainder=True)
+    
+    return dataset

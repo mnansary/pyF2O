@@ -67,3 +67,6 @@ Forged Image To Original Image Generation
     Graphics    : Intel® UHD Graphics 620 (Kabylake GT2)  
     Gnome       : 3.28.2  
 
+# MODELS:
+### Generator:
+1. UNET **ACKNOWLEDGEMENT:** [The Code is taken as it is from Official Tensorflow Tutorials](https://www.tensorflow.org/tutorials/generative/pix2pix)
