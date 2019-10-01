@@ -34,38 +34,6 @@ def readJson(file_name):
     return json.load(open(file_name))
 
 
-def _bytes_feature(value):
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
-
-def to_tfrecord(args,mode,iden='F2O_DataSet'):
-
-    save_dir=os.path.join(args.save_dir,iden,'tfrecords')
-    if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
-    
-    LOG_INFO('TFRECORD:DIR: {}'.format(save_dir),p_color='yellow')
-    
-    tfrecord_name='{}.tfrecords'.format(mode)
-    tfrecord_path=os.path.join(save_dir,tfrecord_name) 
-    
-    images = glob(os.path.join(args.save_dir,iden,mode,'*.png'))
-    for image in images:
-        LOG_INFO('Converting: {} to protocol buffer'.format(image))
-    
-        img = imgop.open(image)
-        arr = np.array(img.resize((2*args.image_dim,args.image_dim)))
-        arr=arr.astype(float)/255 - 0.5
-        IMG = arr[:, :args.image_dim, :]
-        GT = arr[:, args.image_dim:, :]
-    
-        feature ={ 'target': _bytes_feature(GT.tostring()),
-                    'image': _bytes_feature(IMG.tostring()) 
-        }
-    
-        with tf.python_io.TFRecordWriter(tfrecord_path) as writer:
-            example_protocol_buffer = tf.train.Example(features=tf.train.Features(feature=feature))
-            writer.write(example_protocol_buffer.SerializeToString())
-
 def plot_data(image,target):
     
     plt.subplot(1, 2, 1)
@@ -82,8 +50,8 @@ def plot_data(image,target):
 class DataSet(object):
     '''
     This Class is used to preprocess The dataset for Training and Testing
-    One single Image is augmented with rotation of (0,90) with 15 degree increase 
-    and each rotated image is flipped horizontally,vertically and combinedly to produce 28 images per one input
+    One single Image is augmented with rotation of (0,90] with 30 degree increase 
+    and each rotated image is flipped horizontally,vertically and combinedly to produce 12 images per one input
     
     args must include:
     data_dir    = Directory of The Unzipped MICC-XXXX folder
@@ -99,9 +67,9 @@ class DataSet(object):
     def __init__(self,args):
         self.data_dir=args.data_dir
 
-        self.save_dir=os.path.join(args.save_dir,'F2O_DataSet')
-        if not os.path.exists(self.save_dir):
-            os.mkdir(self.save_dir)
+        self.base_save_dir=os.path.join(args.save_dir,'F2O_DataSet')
+        if not os.path.exists(self.base_save_dir):
+            os.mkdir(self.base_save_dir)
 
         self.image_dim=args.image_dim
         self.tamper_iden=args.tamper_iden
@@ -109,24 +77,20 @@ class DataSet(object):
 
         self.dataSet=args.dataset_name
         if self.dataSet=='MICC-F2000':
-            self.data_flag='Train'
+            self.mode='Train'
             if args.rename_flag==1:
                 self.__renameProblematicFileMICC_F2000()
 
         elif self.dataSet=='MICC-F220':
-            self.data_flag='Test'
+            self.mode='Test'
         else:
             raise ValueError('Wrong Dataset!!!')
         
-        self.h5dir=os.path.join(self.save_dir,'H5')
-        if not os.path.exists(self.h5dir):
-            os.mkdir(self.h5dir)
 
-        self.save_dir=os.path.join(self.save_dir,self.data_flag)
+        self.save_dir=os.path.join(self.base_save_dir,self.mode)
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
 
-        
     def __renameProblematicFileMICC_F2000(self):
         file_to_rename='nikon7_scale.jpg'
         proper_name='nikon_7_scale.jpg'
@@ -175,12 +139,12 @@ class DataSet(object):
             x=np.array(x.transpose(imgop.FLIP_LEFT_RIGHT))
             y=gt.transpose(imgop.FLIP_TOP_BOTTOM)
             y=np.array(y.transpose(imgop.FLIP_LEFT_RIGHT))
-
+        
         return np.concatenate((x,y),axis=1)
 
     def __saveData(self,data,identifier):
         file_name=os.path.join(self.save_dir,identifier+'.png')
-        LOG_INFO('Saving {} MODE: {} DATASET: {}'.format(identifier+'.png',self.data_flag,self.dataSet)) 
+        LOG_INFO('Saving {} MODE: {} DATASET: {}'.format(identifier+'.png',self.mode,self.dataSet)) 
         imageio.imsave(file_name,data)    
 
     def __saveTransposedData(self,rot_img,rot_gt,base_name,rot_angle):
@@ -190,7 +154,7 @@ class DataSet(object):
             self.__saveData(data,'{}_{}_fid-{}_angle-{}'.format(rand_id,base_name,fid,rot_angle))
 
     def __genDataSet(self):
-        rotation_angles=[i for i in range(0,105,15)]
+        rotation_angles=[i for i in range(0,90,30)]
         for img_path in self.IMG_Paths:
             #Get IMG and GT paths
             base_path,_=os.path.splitext(img_path)
@@ -212,39 +176,55 @@ class DataSet(object):
                 self.__saveTransposedData(rot_img,rot_gt,base_name,rot_angle)
                 
     def preprocess(self):
-        LOG_INFO('Preprocessing MODE: {} from {}'.format(self.data_flag,self.dataSet),p_color='cyan')
+        LOG_INFO('Preprocessing MODE: {} from {}'.format(self.mode,self.dataSet),p_color='cyan')
         self.__listFiles()
         self.__genDataSet()
         
-        
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 
-def create_h5_dataset(args,mode,iden='F2O_DataSet'):
-    obj=DataSet(args)
-    LOG_INFO('Saving h5 data MODE: {}  from {} '.format(mode,obj.dataSet),p_color='cyan')
-    X=[]
-    Y=[]
-    images = os.listdir(os.path.join(args.save_dir,iden,mode))
-    # load Images:
-    for image in images:
-        img_path=os.path.join(args.save_dir,iden,mode,image)
+def _bytes_feature(value):
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def to_tfrecord(image_paths,obj,r_num):
+    '''
+    Creates tfrecords from Provided Image Paths
+    Arguments:
+    image_paths = List of Image Paths with Fixed Size (NOT THE WHOLE Dataset)
+    obj         = DataSet Object  (Only attributes are needed)
+    r_num       = number of record
+    '''
+    # Create Saving Directory based on mode
+    save_dir=os.path.join(obj.base_save_dir,'tfrecords')
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+    
+    save_dir=os.path.join(save_dir,obj.mode)
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+    
+    LOG_INFO('TFRECORD:DIR: {}'.format(save_dir),p_color='yellow')
+    
+    # Tfrecord Info
+    tfrecord_name='{}_{}.tfrecords'.format(obj.mode,r_num)
+    tfrecord_path=os.path.join(save_dir,tfrecord_name) 
+    
+    for image_path in image_paths:
+        LOG_INFO('Converting: {} to protocol buffer'.format(image_path))
+    
+        img = imgop.open(image_path)
+        arr = np.array(img.resize((2*obj.image_dim,obj.image_dim)))
+        arr=arr.astype(float)/255
+        IMG = arr[:, :obj.image_dim, :]
+        GT = arr[:, obj.image_dim:, :]
+    
+        feature ={ 'target': _bytes_feature(GT.tostring()),
+                    'image': _bytes_feature(IMG.tostring()) 
+        }
+    
+        with tf.python_io.TFRecordWriter(tfrecord_path) as writer:
+            example_protocol_buffer = tf.train.Example(features=tf.train.Features(feature=feature))
+            writer.write(example_protocol_buffer.SerializeToString())
         
-        LOG_INFO('Saving: {} H5 data'.format(img_path))
-        
-        img = imgop.open(img_path)
-        
-        arr = np.array(img.resize((2*args.image_dim,args.image_dim)))
-        arr=arr.astype(float)/255 
-        IMG = arr[:, :args.image_dim, :]
-        GT = arr[:, args.image_dim:, :]
-        
-        X.append(np.expand_dims(IMG,axis=0))
-        Y.append(np.expand_dims(GT,axis=0))
-        
-    X=np.vstack(X)
-    Y=np.vstack(Y)
-    X_path=os.path.join(obj.h5dir,'X_{}.h5'.format(mode))
-    Y_path=os.path.join(obj.h5dir,'Y_{}.h5'.format(mode))
-    saveh5(X_path,X)
-    saveh5(Y_path,Y)
+    LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
