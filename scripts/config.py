@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
 """
 @author: MD.Nazmuddoha Ansary
 """
 from __future__ import print_function
 from termcolor import colored
 
-from models.utils import DataSet,readJson,LOG_INFO
+import json
+import sys
+sys.path.append('..')
 
-import time
-import os
-import numpy as np 
+def readJson(file_name):
+    return json.load(open(file_name))
+
 config_data=readJson('config.json')
 
 class train_args:
@@ -31,19 +32,3 @@ class test_args:
     tamper_iden = config_data['test']['tamper_iden']
     orig_iden   = config_data['test']['orig_iden']
     data_size   = config_data['test']['data_size'] 
-
-    
-def main(argv):
-    start_time=time.time()
-
-    LOG_INFO('CREATING TRAINING DATA with {}'.format(train_args.dataset_name),p_color='yellow')
-    obj=DataSet(train_args)
-    obj.preprocess()
-    LOG_INFO('CREATING TESTING DATA with {}'.format(test_args.dataset_name),p_color='yellow')
-    obj=DataSet(test_args)
-    obj.preprocess()
-        
-    LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
-    
-if __name__ == "__main__":
-    main('MERUL')

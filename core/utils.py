@@ -15,7 +15,7 @@ import imageio
 
 import h5py
 import tensorflow as tf 
-import json
+import time
 #--------------------------------------------------------------COMMON------------------------------------------------------------------------------------
 def LOG_INFO(log_text,p_color='green'):
     print(colored('#    LOG:','blue')+colored(log_text,p_color))
@@ -29,10 +29,6 @@ def readh5(d_path):
     data=h5py.File(d_path, 'r')
     data = np.array(data['data'])
     return data
-
-def readJson(file_name):
-    return json.load(open(file_name))
-
 
 def plot_data(image,target):
     
@@ -50,8 +46,8 @@ def plot_data(image,target):
 class DataSet(object):
     '''
     This Class is used to preprocess The dataset for Training and Testing
-    One single Image is augmented with rotation of (0,90] with 30 degree increase 
-    and each rotated image is flipped horizontally,vertically and combinedly to produce 12 images per one input
+    One single Image is augmented with rotation of 0 and 45 degree 
+    and each rotated image is flipped horizontally,vertically and combinedly to produce 8 images per one input
     
     args must include:
     data_dir    = Directory of The Unzipped MICC-XXXX folder
@@ -154,7 +150,7 @@ class DataSet(object):
             self.__saveData(data,'{}_{}_fid-{}_angle-{}'.format(rand_id,base_name,fid,rot_angle))
 
     def __genDataSet(self):
-        rotation_angles=[i for i in range(0,90,30)]
+        rotation_angles=[0,45]
         for img_path in self.IMG_Paths:
             #Get IMG and GT paths
             base_path,_=os.path.splitext(img_path)
@@ -214,7 +210,6 @@ def to_tfrecord(image_paths,obj,r_num):
     
         img = imgop.open(image_path)
         arr = np.array(img.resize((2*obj.image_dim,obj.image_dim)))
-        arr=arr.astype(float)/255
         IMG = arr[:, :obj.image_dim, :]
         GT = arr[:, obj.image_dim:, :]
     
@@ -266,3 +261,55 @@ def get_batched_dataset(FLAGS):
     image, target = iterator.get_next()
 
     return image,target
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+def H5_data(image_path_list,obj,r_num):
+    start_time=time.time()
+    X=[]
+    Y=[]
+    for image_path in image_path_list:
+    
+        LOG_INFO('IMG: {} '.format(image_path))
+    
+        img_obj=imgop.open(image_path)
+        
+        arr = np.array(img_obj.resize((2*obj.image_dim,obj.image_dim)))
+        
+        x = arr[:, :obj.image_dim, :]
+        y = arr[:, obj.image_dim:, :]
+
+        X.append(np.expand_dims(x,axis=0))
+        Y.append(np.expand_dims(y,axis=0))
+    
+    LOG_INFO('Appending Time Taken: {} s'.format(time.time()-start_time),'yellow')
+    start_time=time.time()
+    
+    X=np.vstack(X)
+    
+    LOG_INFO('X stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
+    start_time=time.time()
+    
+    Y=np.vstack(Y)
+    
+    LOG_INFO('Y stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
+    start_time=time.time()
+    
+    h5_dir=os.path.join(obj.base_save_dir,'H5Data')
+    if not os.path.exists(h5_dir):
+        os.mkdir(h5_dir)
+
+    X_p=os.path.join(h5_dir,'X_{}_{}.h5'.format(obj.mode,r_num))
+    
+    Y_p=os.path.join(h5_dir,'Y_{}_{}.h5'.format(obj.mode,r_num))
+    
+    saveh5(X_p,X)
+    
+    LOG_INFO('X H5 Saivng Time Taken: {} s'.format(time.time()-start_time),'yellow')
+    start_time=time.time()
+    
+    saveh5(Y_p,Y)
+    
+    LOG_INFO('Y H5 Saving Time Taken: {} s'.format(time.time()-start_time),'yellow')
+    
+    return X_p,Y_p
+    

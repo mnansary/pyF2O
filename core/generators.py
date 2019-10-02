@@ -11,7 +11,7 @@ import tensorflow.keras.backend as K
 import numpy as np
 from keras.utils import plot_model
 #-----------------------------------------------------------------------------------------------------------------------------
-def unet(image_dim=256,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
+def unet(image_dim=128,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
     # input 
     in_image_shape=(image_dim,image_dim,nb_channels)
     # U-Net

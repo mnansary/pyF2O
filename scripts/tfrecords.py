@@ -5,13 +5,17 @@
 from __future__ import print_function
 from termcolor import colored
 
-from models.utils import to_tfrecord,LOG_INFO,DataSet
-from create_dataset import train_args,test_args
-
 import time
 import os
 import numpy as np 
 from glob import glob
+
+import sys 
+sys.path.append("..")
+
+from core.utils import to_tfrecord,LOG_INFO,DataSet
+from scripts.config import train_args,test_args
+
 
 def path_to_record(args):
     obj=DataSet(args)
@@ -25,7 +29,7 @@ def path_to_record(args):
         to_tfrecord(image_paths,obj,r_num)
     
 
-def main(argv):
+def create_tfrecord():
     start_time=time.time()
     LOG_INFO('Creating TFRecords for Test Data')
     path_to_record(test_args)
@@ -34,5 +38,5 @@ def main(argv):
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
 
 if __name__=='__main__':
-    main('MERUL')
+    create_tfrecord()
     
