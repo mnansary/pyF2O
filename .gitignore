@@ -105,3 +105,4 @@ venv.bak/
 .vscode/*
 clear_cache.sh 
 core/unstable.py 
+core/model_weights/*.h5

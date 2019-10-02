@@ -30,18 +30,26 @@ def readh5(d_path):
     data = np.array(data['data'])
     return data
 
-def plot_data(image,target):
+def plot_data(img,gt,pred,net,save_flag=None,show_imdt=False) :
+    plt.figure(net)
+    plt.subplot(131)
+    plt.imshow(img)
+    plt.title(' image')
+    plt.subplot(132)
+    plt.title('ground truth')
+    plt.imshow(gt)
+    plt.subplot(133)
+    plt.imshow(pred)
+    plt.title('prediction')
     
-    plt.subplot(1, 2, 1)
-    plt.imshow(image)
-    plt.title('IMAGE')
-    plt.subplot(1, 2, 2)
-    plt.imshow(target)
-    plt.title('GROUND TRUTH')
-    plt.show()
+    if save_flag:
+        plt.savefig(save_flag)
+    if show_imdt:
+        plt.show()
+    
     plt.clf()
     plt.close()
-        
+
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 class DataSet(object):
     '''
