@@ -6,7 +6,7 @@ from __future__ import print_function
 from termcolor import colored
 
 from tensorflow.keras.models import Model 
-from tensorflow.keras.layers import Input,Concatenate,Reshape,Conv2D,UpSampling2D,LeakyReLU,BatchNormalization,MaxPooling2D,Activation,Flatten,Dense,Lambda
+from tensorflow.keras.layers import Input,Concatenate,Reshape,Conv2D,Conv2DTranspose,LeakyReLU,BatchNormalization,MaxPooling2D,Activation,Flatten,Dense,Lambda
 import tensorflow.keras.backend as K
 import numpy as np
 import tensorflow as tf 
@@ -47,14 +47,12 @@ def unet(image_dim=128,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='sa
     # UpSampling Blocks
     for index,nb_filter in enumerate(nb_filters):
         X = Activation("relu",name='gen_dec_conv_{}_act'.format(index+1))(X)
-        X = UpSampling2D(size=(2, 2),name='gen_dec_conv_{}_ups'.format(index+1))(X)
-        X = Conv2D(nb_filter, kernel_size, name='gen_dec_conv_{}'.format(index+1), padding="same")(X)
-        X = BatchNormalization(name='gen_dec_conv_{}_bn'.format(index+1))(X)
-        X = Concatenate(name='gen_dec_conv_{}_conc'.format(index+1))([X ,en_X[-(index+2)]])
-
+        X = Conv2DTranspose(nb_filter, kernel_size,strides=strides,name='gen_dec_deconv_{}'.format(index+1), padding="same")(X)
+        X = BatchNormalization(name='gen_dec_deconv_{}_bn'.format(index+1))(X)
+        X = Concatenate(name='gen_dec_deconv_{}_conc'.format(index+1))([X ,en_X[-(index+2)]])
+    
     X = Activation("relu",name='gen_dec_conv_last_act')(X)
-    X = UpSampling2D(size=(2, 2),name='gen_dec_conv_last_ups')(X)
-    X = Conv2D(nb_channels, kernel_size, name="gen_dec_conv_last", padding="same")(X)
+    X = Conv2DTranspose(nb_channels, kernel_size,strides=strides, name="gen_dec_conv_last", padding="same")(X)
     X = Activation("tanh",name='gen_dec_conv_final_act')(X)
 
     gen_unet_model = Model(inputs=[In], outputs=[X])
@@ -106,12 +104,12 @@ def man_net(img_dim=128,nb_channels=3):
 #-----------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    '''
+    
     model=unet()
     model.summary()
-    plot_model(model,to_file='UNET.png',show_shapes=True)
+    plot_model(model,to_file='u-Net.png',show_shapes=True)
     '''
     model=man_net()
     model.summary()
     plot_model(model,to_file='man_net.png',show_shapes=True)
-    
+    '''
