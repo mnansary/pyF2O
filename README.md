@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 0.0.2    
+    Version: 0.0.3    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/info/src_img/python.ico?raw=true )
@@ -41,25 +41,16 @@ Forged Image To Original Image Generation
         "save_dir"     : "/home/ansary/RESEARCH/F2O/",
     }        
 
-### clear_cache.sh (Ubuntu/Linux-- cache)
+### clear_mem.sh (Ubuntu/Linux)
 The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is as follows:
-0. Create a shell script with only **echo 1 > /proc/sys/vm/drop_caches** command in the git repo
-1. Change ownership and permission for **clear_cache.sh** with a terminal on git repository folder and execute:
 
-        sudo chown root:root clear_cache.sh    
-        sudo chmod 700 clear_cache.sh    
-
-2. Type **sudo visudo**
-3. Find the line **%sudo ALL=(ALL:ALL) ALL**
-4. insert a line below as the format: ***username* ALL=(ALL) NOPASSWD: /home/username/path/to/git/repo/clear_cache.sh** and save and exit nano
-> example: **ansary ALL=(ALL) NOPASSWD: /home/ansary/RESEARCH/F2O/pyF2O/clear_cache.sh**
-5. run **main.py**
+1. run **main.py**
+2. run **sudo ./clear_mem.sh**
 
 ### For Non-Ubuntu Users:
 If you have enough **RAM**, no issue will occur hopefully.If not, execute the scripts in **scripts** folder in the following order:
 * ***png.py***
-* ***trainH5.py***
-* ***testH5.py***
+* ***H5s.py***
 * ***tfrecords.py*** 
 **NOTE**: The **png.py** must be executed prior to any other scripts 
 
@@ -69,28 +60,18 @@ If you have enough **RAM**, no issue will occur hopefully.If not, execute the sc
 * If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree:
 
             F2O_DataSet  
-            ├── H5Data  
-            │   ├── X_Test_ALL.h5  
-            │   ├── X_Train_ALL.h5  
-            │   ├── Y_Test_ALL.h5  
-            │   └── Y_Train_ALL.h5  
-            ├── Test  
-            │   ├── XXXXXXXXXX.png  
-            |   |--------------------(PNG test images)  
-            │   └── XXXXXXXXXX.png  
-            ├── tfrecords  
-            │   ├── Test  
-            │   │   ├── Test_X.tfrecords  
-            |   |   ├──-------------------(Test_someNumber.tfrecords)  
-            |   |   └── Test_X.tfrecords  
-            │   └── Train  
-            │       ├── Train_X.tfrecords  
-            |       ├──-------------------(Train_someNumber.tfrecords)  
-            |       └── Train_X.tfrecords  
-            └── Train  
-                ├── XXXXXXXXXX.png  
-                |--------------------(PNG train images)  
-                └── XXXXXXXXXX.png  
+            ├── H5Data
+            │   ├── Test
+            │   │   ├── Images
+            │   │   └── Targets
+            │   └── Train
+            │       ├── Images
+            │       └── Targets
+            ├── Test
+            ├── tfrecords
+            │   ├── Test
+            │   └── Train
+            └── Train
 
 * The *'.png'* is a concatenated version of **ForgedImage|GroundTruth**
 > To understand the charecteristics of the *.png* data please read the Docstrings of **DataSet** class from  **core/utils.py**  

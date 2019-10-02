@@ -12,7 +12,7 @@ import numpy as np
 import tensorflow as tf 
 from keras.utils import plot_model
 #-----------------------------------------------------------------------------------------------------------------------------
-def unet(image_dim=128,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
+def unet(image_dim=256,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
     # input 
     in_image_shape=(image_dim,image_dim,nb_channels)
     # U-Net
@@ -78,7 +78,7 @@ def lambda_fcn(X):
 def lambda_out(in_shape):
     return tuple([in_shape[0],in_shape[1]*2,in_shape[2]*2,in_shape[3]])
 #-----------------------------------------------------------------------------------------------
-def man_net(img_dim=128,nb_channels=3):
+def man_net(img_dim=256,nb_channels=3):
     nb_filters=[64,64,128,128,256,256,256,512,512,512]
     pool_idx=[1,3,6,9]
     nb_f=[i for i in range(8,0,-2)]
@@ -108,8 +108,6 @@ if __name__ == "__main__":
     model=unet()
     model.summary()
     plot_model(model,to_file='u-Net.png',show_shapes=True)
-    '''
     model=man_net()
     model.summary()
     plot_model(model,to_file='man_net.png',show_shapes=True)
-    '''

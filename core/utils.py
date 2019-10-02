@@ -54,8 +54,8 @@ def plot_data(img,gt,pred,net,save_flag=None,show_imdt=False) :
 class DataSet(object):
     '''
     This Class is used to preprocess The dataset for Training and Testing
-    One single Image is augmented with rotation of 0 and 45 degree 
-    and each rotated image is flipped horizontally,vertically and combinedly to produce 8 images per one input
+    One single Image is augmented with rotation of (0,25) increasing by 5 degree 
+    and each rotated image is flipped horizontally,vertically and combinedly to produce 24 images per one input
     
     args must include:
     data_dir    = Directory of The Unzipped MICC-XXXX folder
@@ -94,6 +94,9 @@ class DataSet(object):
         self.save_dir=os.path.join(self.base_save_dir,self.mode)
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
+        
+        self.prb_idens=['P1000231','DSCN47']
+        self.data_size=args.data_size
 
     def __renameProblematicFileMICC_F2000(self):
         file_to_rename='nikon7_scale.jpg'
@@ -111,9 +114,10 @@ class DataSet(object):
             base_path,_=os.path.splitext(file_name)
             base_name=os.path.basename(base_path)
             base_name=base_name[:base_name.find(self.tamper_iden)]
-            self.IMG_Paths.append(file_name)
-            self.IMG_Idens.append(base_name)
-        
+            if base_name not in self.prb_idens: 
+                self.IMG_Paths.append(file_name)
+                self.IMG_Idens.append(base_name)
+            
         self.IMG_Idens=list(set(self.IMG_Idens))
         
         self.GT_Paths=[]
@@ -144,7 +148,10 @@ class DataSet(object):
             y=gt.transpose(imgop.FLIP_TOP_BOTTOM)
             y=np.array(y.transpose(imgop.FLIP_LEFT_RIGHT))
         
-        return np.concatenate((x,y),axis=1)
+        d=x-y
+        d[d!=0]=y[d!=0]
+        
+        return np.concatenate((x,d),axis=1)
 
     def __saveData(self,data,identifier):
         file_name=os.path.join(self.save_dir,identifier+'.png')
@@ -158,7 +165,7 @@ class DataSet(object):
             self.__saveData(data,'{}_{}_fid-{}_angle-{}'.format(rand_id,base_name,fid,rot_angle))
 
     def __genDataSet(self):
-        rotation_angles=[0,45]
+        rotation_angles=[i for i in range(0,30,5)]
         for img_path in self.IMG_Paths:
             #Get IMG and GT paths
             base_path,_=os.path.splitext(img_path)
@@ -273,51 +280,65 @@ def get_batched_dataset(FLAGS):
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def H5_data(image_path_list,obj,r_num):
     start_time=time.time()
-    X=[]
-    Y=[]
-    for image_path in image_path_list:
-    
-        LOG_INFO('IMG: {} '.format(image_path))
-    
-        img_obj=imgop.open(image_path)
+    for i in range(0,len(image_path_list),obj.data_size):
+        X=[]
+        Y=[]
+        image_paths=image_path_list[i:i+obj.data_size]        
+        for image_path in image_paths:
+            
+            LOG_INFO('IMG: {} '.format(image_path))
         
-        arr = np.array(img_obj.resize((2*obj.image_dim,obj.image_dim)))
+            img_obj=imgop.open(image_path)
+            
+            arr = np.array(img_obj.resize((2*obj.image_dim,obj.image_dim)))
+            
+            x = arr[:, :obj.image_dim, :]
+            y = arr[:, obj.image_dim:, :]
+
+            X.append(np.expand_dims(x,axis=0))
+            Y.append(np.expand_dims(y,axis=0))
         
-        x = arr[:, :obj.image_dim, :]
-        y = arr[:, obj.image_dim:, :]
+        LOG_INFO('Appending Time Taken: {} s'.format(time.time()-start_time),'yellow')
+        start_time=time.time()
+        
+        X=np.vstack(X)
+        
+        LOG_INFO('X stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
+        start_time=time.time()
+        
+        Y=np.vstack(Y)
+        
+        LOG_INFO('Y stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
+        start_time=time.time()
+        
+        h5_dir=os.path.join(obj.base_save_dir,'H5Data')
+        if not os.path.exists(h5_dir):
+            os.mkdir(h5_dir)
 
-        X.append(np.expand_dims(x,axis=0))
-        Y.append(np.expand_dims(y,axis=0))
-    
-    LOG_INFO('Appending Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    start_time=time.time()
-    
-    X=np.vstack(X)
-    
-    LOG_INFO('X stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    start_time=time.time()
-    
-    Y=np.vstack(Y)
-    
-    LOG_INFO('Y stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    start_time=time.time()
-    
-    h5_dir=os.path.join(obj.base_save_dir,'H5Data')
-    if not os.path.exists(h5_dir):
-        os.mkdir(h5_dir)
+        h5_dir=os.path.join(h5_dir,obj.mode)
+        if not os.path.exists(h5_dir):
+            os.mkdir(h5_dir)
 
-    X_p=os.path.join(h5_dir,'X_{}_{}.h5'.format(obj.mode,r_num))
+        X_h5dir=os.path.join(h5_dir,'Images')
+        if not os.path.exists(X_h5dir):
+            os.mkdir(X_h5dir)
+
+        Y_h5dir=os.path.join(h5_dir,'Targets')
+        if not os.path.exists(Y_h5dir):
+            os.mkdir(Y_h5dir)
+
+
+        X_p=os.path.join(X_h5dir,'X_{}_{}.h5'.format(obj.mode,i))
+        
+        Y_p=os.path.join(Y_h5dir,'Y_{}_{}.h5'.format(obj.mode,i))
+        
+        saveh5(X_p,X)
+        
+        LOG_INFO('X H5 Saivng Time Taken: {} s'.format(time.time()-start_time),'yellow')
+        start_time=time.time()
+        
+        saveh5(Y_p,Y)
+        
+        LOG_INFO('Y H5 Saving Time Taken: {} s'.format(time.time()-start_time),'yellow')
     
-    Y_p=os.path.join(h5_dir,'Y_{}_{}.h5'.format(obj.mode,r_num))
-    
-    saveh5(X_p,X)
-    
-    LOG_INFO('X H5 Saivng Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    start_time=time.time()
-    
-    saveh5(Y_p,Y)
-    
-    LOG_INFO('Y H5 Saving Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    
-    return X_p,Y_p
     

@@ -3,24 +3,24 @@
     {
         "data_dir"     : "/home/ansary/RESEARCH/F2O/MICC-F2000/",
         "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "image_dim"    : 128,
+        "image_dim"    : 256,
         "dataset_name" : "MICC-F2000",
         "rename_flag"  : 0,
         "tamper_iden"  : "tamp",
         "orig_iden"    : "_scale",
-        "data_size"    : 128
+        "data_size"    : 1024
     
     },
     "test":
     {
         "data_dir"     : "/home/ansary/RESEARCH/F2O/MICC-F220/",
         "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "image_dim"    : 128,
+        "image_dim"    : 256,
         "dataset_name" : "MICC-F220",
         "rename_flag"  : 0,
         "tamper_iden"  : "tamp",
         "orig_iden"    : "_scale",
-        "data_size"    : 128
+        "data_size"    : 1024
     }
     
 }

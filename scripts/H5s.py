@@ -15,9 +15,19 @@ import sys
 sys.path.append("..") 
 
 from core.utils import DataSet,LOG_INFO,readh5,H5_data
-from scripts.config import test_args
+from scripts.config import train_args,test_args
 
 
+
+def create_trainH5():
+    start_time=time.time()
+
+    LOG_INFO('Creating H5 for Train Data')
+    
+    obj=DataSet(train_args)
+    image_path_list=glob(os.path.join(obj.save_dir,'*.png'))
+    H5_data(image_path_list,obj,'ALL')
+    LOG_INFO('Total Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
 
 def create_testH5():
     start_time=time.time()
@@ -26,16 +36,11 @@ def create_testH5():
     
     obj=DataSet(test_args)
     image_path_list=glob(os.path.join(obj.save_dir,'*.png'))
-    X_p,Y_p=H5_data(image_path_list,obj,'ALL')
-    
-    X=readh5(X_p)
-    Y=readh5(Y_p)
-    
-    LOG_INFO('X Shape :({})'.format(X.shape))
-    LOG_INFO('Y Shape :({})'.format(Y.shape))
-    
+    H5_data(image_path_list,obj,'ALL')
     LOG_INFO('Total Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
 
+
 if __name__=='__main__':
+    create_trainH5()
     create_testH5()
     
