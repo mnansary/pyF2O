@@ -45,8 +45,10 @@ Forged Image To Original Image Generation
 The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is as follows:
 0. Create a shell script with only **echo 1 > /proc/sys/vm/drop_caches** command in the git repo
 1. Change ownership and permission for **clear_cache.sh** with a terminal on git repository folder and execute:
-        sudo chown root:root clear_cache.sh  
-        sudo chmod 700 clear_cache.sh  
+
+        sudo chown root:root clear_cache.sh    
+        sudo chmod 700 clear_cache.sh    
+
 2. Type **sudo visudo**
 3. Find the line **%sudo ALL=(ALL:ALL) ALL**
 4. insert a line below as the format: ***username* ALL=(ALL) NOPASSWD: /home/username/path/to/git/repo/clear_cache.sh** and save and exit nano
@@ -64,7 +66,8 @@ If you have enough **RAM**, no issue will occur hopefully.If not, execute the sc
 
 
 ### Results:
-* If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree:  
+* If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree:
+
             F2O_DataSet  
             ├── H5Data  
             │   ├── X_Test_ALL.h5  
@@ -87,7 +90,7 @@ If you have enough **RAM**, no issue will occur hopefully.If not, execute the sc
             └── Train  
                 ├── XXXXXXXXXX.png  
                 |--------------------(PNG train images)  
-                └── XXXXXXXXXX.png  
+                └── XXXXXXXXXX.png  
 
 * The *'.png'* is a concatenated version of **ForgedImage|GroundTruth**
 > To understand the charecteristics of the *.png* data please read the Docstrings of **DataSet** class from  **core/utils.py**  
@@ -102,9 +105,6 @@ If you have enough **RAM**, no issue will occur hopefully.If not, execute the sc
     Gnome       : 3.28.2  
 
 
-# MODELS:
-## Generator
-* UNET *Implemented model at info/UNET.png*
 
 
 
