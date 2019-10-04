@@ -5,7 +5,7 @@ from __future__ import print_function
 from termcolor import colored
 
 
-from F2O.utils import data_input_fn
+from F2O.utils import data_input_fn,get_tensors
 
 import numpy as np 
 import matplotlib.pyplot as plt 
@@ -28,11 +28,18 @@ class PARAMS:
     VALIDATION_STEPS    = int( NB_EVAL_DATA //FLAGS.BATCH_SIZE )
 
     
-
 #---------------------------------------------------------------------------------------------
+NB_TRAIN    = (PARAMS.NB_TOTAL_DATA - PARAMS.NB_EVAL_DATA)// FLAGS.BATCH_SIZE
+NB_EVAL     = PARAMS.NB_EVAL_DATA // FLAGS.BATCH_SIZE
+
 train_iterator = data_input_fn(FLAGS,'Train')
 eval_iterator  = data_input_fn(FLAGS,'Eval')
 
+X_train,Y_train =   get_tensors(train_iterator,NB_TRAIN)
+X_eval,Y_eval   =   get_tensors(eval_iterator,NB_EVAL)
+
+print(X_train.shape,Y_train.shape)
+print(X_eval.shape,Y_eval.shape)
 #---------------------------------------------------------------------------------------------
 def check_data(iterator):
     images,targets=iterator.get_next()
@@ -70,6 +77,6 @@ def tarin_debug(PARAMS):
         validation_steps=PARAMS.VALIDATION_STEPS
     )
 
-check_data(train_iterator)
-check_data(eval_iterator)
-tarin_debug(PARAMS)
+#check_data(train_iterator)
+#check_data(eval_iterator)
+#tarin_debug(PARAMS)

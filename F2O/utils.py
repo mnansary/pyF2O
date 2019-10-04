@@ -281,3 +281,16 @@ def data_input_fn(FLAGS,MODE):
         return dataset
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
+def get_tensors(iterator,NB_BATCHES):
+    images,targets=iterator.get_next()
+    with tf.Session() as sess:
+        for nb in range(NB_BATCHES):
+            x, y = sess.run([images,targets])
+            if nb==0:
+                X=x
+                Y=y
+            else:
+                X=np.concatenate((X,x),axis=0)
+                Y=np.concatenate((Y,y),axis=0)
+    return X,Y
+#--------------------------------------------------------------------------------------------------------------------------------------------------
