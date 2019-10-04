@@ -250,13 +250,12 @@ def data_input_fn(FLAGS,MODE):
         NB_CHANNELS     = Depth of Image
         BATCH_SIZE      = batch size for traning
         SHUFFLE_BUFFER  = Buffer Size > Batch Size
-        EPOCHS          = Num of epochs to repeat the dataset
     '''
     def _parser(example):
         feature ={  'image'  : tf.io.FixedLenFeature([],tf.string) ,
                     'target' : tf.io.FixedLenFeature([],tf.string)
         }
-        parsed_example=tf.parse_single_example(example,feature)
+        parsed_example=tf.io.parse_single_example(example,feature)
         
         image_raw=parsed_example['image']
         image=tf.image.decode_png(image_raw,channels=FLAGS.NB_CHANNELS)
@@ -273,7 +272,7 @@ def data_input_fn(FLAGS,MODE):
     dataset = tf.data.TFRecordDataset(file_paths)
     dataset = dataset.map(_parser)
     dataset = dataset.shuffle(FLAGS.SHUFFLE_BUFFER)
-    dataset = dataset.repeat(FLAGS.EPOCHS)
+    dataset = dataset.repeat()
     dataset = dataset.batch(FLAGS.BATCH_SIZE, drop_remainder=True)
     return dataset
 
