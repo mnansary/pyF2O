@@ -103,5 +103,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 .vscode/*
-core/unstable.py 
-core/model_weights/*.h5
+
+F2O/model_weights/*.h5

@@ -8,8 +8,11 @@ from termcolor import colored
 from tensorflow.keras.models import Model 
 from tensorflow.keras.layers import Input,Concatenate,Reshape,Conv2D,Conv2DTranspose,LeakyReLU,BatchNormalization,MaxPooling2D,Activation,Flatten,Dense,Lambda
 import tensorflow.keras.backend as K
+
 import numpy as np
 import tensorflow as tf 
+import os 
+
 from keras.utils import plot_model
 #-----------------------------------------------------------------------------------------------------------------------------
 def unet(image_dim=256,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
@@ -107,7 +110,7 @@ if __name__ == "__main__":
     
     model=unet()
     model.summary()
-    plot_model(model,to_file='u-Net.png',show_shapes=True)
+    plot_model(model,to_file=os.path.join(os.getcwd(),'info','u-Net.png') ,show_shapes=True)
     model=man_net()
     model.summary()
-    plot_model(model,to_file='man_net.png',show_shapes=True)
+    plot_model(model,to_file=os.path.join(os.getcwd(),'info','man_net.png') ,show_shapes=True)

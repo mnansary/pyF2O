@@ -13,22 +13,13 @@ import matplotlib.pyplot as plt
 from PIL import Image as imgop
 import imageio
 
-import h5py
 import tensorflow as tf 
 import time
+
+from functools import partial
 #--------------------------------------------------------------COMMON------------------------------------------------------------------------------------
 def LOG_INFO(log_text,p_color='green'):
     print(colored('#    LOG:','blue')+colored(log_text,p_color))
-
-def saveh5(path,data):
-    hf = h5py.File(path,'w')
-    hf.create_dataset('data',data=data)
-    hf.close()
-
-def readh5(d_path):
-    data=h5py.File(d_path, 'r')
-    data = np.array(data['data'])
-    return data
 
 def plot_data(img,gt,pred,net,save_flag=None,show_imdt=False) :
     plt.figure(net)
@@ -71,7 +62,7 @@ class DataSet(object):
     def __init__(self,args):
         self.data_dir=args.data_dir
 
-        self.base_save_dir=os.path.join(args.save_dir,'F2O_DataSet')
+        self.base_save_dir=os.path.join(args.save_dir,'DataSet')
         if not os.path.exists(self.base_save_dir):
             os.mkdir(self.base_save_dir)
 
@@ -88,15 +79,15 @@ class DataSet(object):
         elif self.dataSet=='MICC-F220':
             self.mode='Test'
         else:
-            raise ValueError('Wrong Dataset!!!')
+            self.mode='Eval'
         
-
         self.save_dir=os.path.join(self.base_save_dir,self.mode)
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
         
+
         self.prb_idens=['P1000231','DSCN47']
-        self.data_size=args.data_size
+        self.batch_size=args.batch_size
 
     def __renameProblematicFileMICC_F2000(self):
         file_to_rename='nikon7_scale.jpg'
@@ -108,6 +99,7 @@ class DataSet(object):
             print(colored(e,'green'))
         
     def __listFiles(self):
+        
         self.IMG_Paths=[]
         self.IMG_Idens=[]
         for file_name in glob(os.path.join(self.data_dir,'*{}*.*'.format(self.tamper_iden))):
@@ -119,7 +111,6 @@ class DataSet(object):
                 self.IMG_Idens.append(base_name)
             
         self.IMG_Idens=list(set(self.IMG_Idens))
-        
         self.GT_Paths=[]
         self.GT_Idens=[]
         
@@ -150,8 +141,7 @@ class DataSet(object):
         
         d=x-y
         d[d!=0]=y[d!=0]
-        
-        return np.concatenate((x,d),axis=1)
+        return x,d
 
     def __saveData(self,data,identifier):
         file_name=os.path.join(self.save_dir,identifier+'.png')
@@ -161,8 +151,10 @@ class DataSet(object):
     def __saveTransposedData(self,rot_img,rot_gt,base_name,rot_angle):
         for fid in range(4):
             rand_id=random.randint(0,20000)
-            data=self.__getFlipDataById(rot_img,rot_gt,fid)
-            self.__saveData(data,'{}_{}_fid-{}_angle-{}'.format(rand_id,base_name,fid,rot_angle))
+            x,y=self.__getFlipDataById(rot_img,rot_gt,fid)
+            self.__saveData(x,'{}_{}_fid-{}_angle-{}_image'.format(rand_id,base_name,fid,rot_angle))
+            self.__saveData(y,'{}_{}_fid-{}_angle-{}_target'.format(rand_id,base_name,fid,rot_angle))
+            
 
     def __genDataSet(self):
         rotation_angles=[i for i in range(0,30,5)]
@@ -195,6 +187,10 @@ class DataSet(object):
 
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+def _int64_feature(value):
+      return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+def _float_feature(value):
+      return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
 
 def to_tfrecord(image_paths,obj,r_num):
@@ -206,7 +202,7 @@ def to_tfrecord(image_paths,obj,r_num):
     r_num       = number of record
     '''
     # Create Saving Directory based on mode
-    save_dir=os.path.join(obj.base_save_dir,'tfrecords')
+    save_dir=os.path.join(obj.base_save_dir,'tfrecord')
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
     
@@ -217,128 +213,71 @@ def to_tfrecord(image_paths,obj,r_num):
     LOG_INFO('TFRECORD:DIR: {}'.format(save_dir),p_color='yellow')
     
     # Tfrecord Info
-    tfrecord_name='{}_{}.tfrecords'.format(obj.mode,r_num)
+    tfrecord_name='{}_{}.tfrecord'.format(obj.mode,r_num)
     tfrecord_path=os.path.join(save_dir,tfrecord_name) 
     
     for image_path in image_paths:
-        LOG_INFO('Converting: {} to protocol buffer'.format(image_path))
-    
-        img = imgop.open(image_path)
-        arr = np.array(img.resize((2*obj.image_dim,obj.image_dim)))
-        IMG = arr[:, :obj.image_dim, :]
-        GT = arr[:, obj.image_dim:, :]
-    
-        feature ={ 'target': _bytes_feature(GT.tostring()),
-                    'image': _bytes_feature(IMG.tostring()) 
-        }
-    
-        with tf.python_io.TFRecordWriter(tfrecord_path) as writer:
-            example_protocol_buffer = tf.train.Example(features=tf.train.Features(feature=feature))
-            writer.write(example_protocol_buffer.SerializeToString())
+        if '_image' in image_path:
+            LOG_INFO('Converting: {} '.format(image_path))
+            target_path=str(image_path).replace('_image','_target')
+            LOG_INFO('Converting: {} '.format(target_path),p_color='cyan')
+            
+            with(open(image_path,'rb')) as fid:
+                image_png_bytes=fid.read()
+
+            with(open(target_path,'rb')) as fid:
+                target_png_bytes=fid.read()
+
+            data ={ 'image':_bytes_feature(image_png_bytes),
+                    'target':_bytes_feature(target_png_bytes)
+            }
         
+            with tf.python_io.TFRecordWriter(tfrecord_path) as writer:
+                features=tf.train.Features(feature=data)
+                example= tf.train.Example(features=features)
+                serialized=example.SerializeToString()
+                writer.write(serialized)
+            
     LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def get_batched_dataset(FLAGS):
+
+def data_input_fn(FLAGS,MODE): 
     '''
     This Function generates data from provided FLAGS
     FLAGS must include:
-    TFRECORDS_DIR   = Directory of tfrecords
-    BATCH_SIZE      = Batch Size of the data
-    NUM_EPOCHS      = Total Number of epochs
-    IMAGE_DIM       = Dimension of Image
-    SHUFFLE_BUFFER  = Size for shuffle buffer > batch size
+        TFRECORDS_DIR   = Directory of tfrecords
+        IMAGE_DIM       = Dimension of Image
+        NB_CHANNELS     = Depth of Image
+        BATCH_SIZE      = batch size for traning
+        MAKE_ITERATOR   = Boolean Flag to make one_shot_itr
     '''
-    def _parser(example_protocol_buffer):
-        feature ={  'target'  : tf.io.FixedLenFeature([],tf.string) ,
-                    'image'   : tf.io.FixedLenFeature([],tf.string)
+    def _parser(example):
+        feature ={  'image'  : tf.io.FixedLenFeature([],tf.string) ,
+                    'target' : tf.io.FixedLenFeature([],tf.string)
         }
-        parsed_feature=tf.parse_single_example(example_protocol_buffer,feature)
+        parsed_example=tf.parse_single_example(example,feature)
         
-        x =   tf.image.decode_png(parsed_feature['image'],channels=3)
-        x =   tf.cast(x,tf.float32)/255.0
-        x =   tf.reshape(x,[FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,3])
- 
-        y =   tf.image.decode_png(parsed_feature['target'],channels=3)
-        y =   tf.cast(y,tf.float32)/255.0
-        y =   tf.reshape(y,[FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,3])
+        image_raw=parsed_example['image']
+        image=tf.image.decode_png(image_raw,channels=FLAGS.NB_CHANNELS)
+        image=tf.cast(image,tf.float32)/255.0
+        image=tf.reshape(image,(FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,FLAGS.NB_CHANNELS))
+        
+        target_raw=parsed_example['target']
+        target=tf.image.decode_png(target_raw,channels=FLAGS.NB_CHANNELS)
+        target=tf.reshape(target,(FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,FLAGS.NB_CHANNELS))
+        
+        return image,target 
 
-        return x,y 
     
-    file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,'*.tfrecords'))
-
+    file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,MODE,'*.tfrecord'))
     dataset =   tf.data.TFRecordDataset(file_paths)
-    dataset =   dataset.map(_parser)
-    dataset =   dataset.repeat()
-    dataset =   dataset.shuffle(FLAGS.SHUFFLE_BUFFER)
-    dataset =   dataset.batch(FLAGS.BATCH_SIZE)
-    
-    iterator = dataset.make_one_shot_iterator()
-    image, target = iterator.get_next()
+    dataset = dataset.map(_parser)
+    dataset = dataset.repeat()
+    dataset = dataset.batch(FLAGS.BATCH_SIZE, drop_remainder=True)
 
-    return image,target
+    if FLAGS.MAKE_ITERATOR: 
+        return dataset.make_one_shot_iterator()
+    else:
+        return dataset
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def H5_data(image_path_list,obj,r_num):
-    start_time=time.time()
-    for i in range(0,len(image_path_list),obj.data_size):
-        X=[]
-        Y=[]
-        image_paths=image_path_list[i:i+obj.data_size]        
-        for image_path in image_paths:
-            
-            LOG_INFO('IMG: {} '.format(image_path))
-        
-            img_obj=imgop.open(image_path)
-            
-            arr = np.array(img_obj.resize((2*obj.image_dim,obj.image_dim)))
-            
-            x = arr[:, :obj.image_dim, :]
-            y = arr[:, obj.image_dim:, :]
-
-            X.append(np.expand_dims(x,axis=0))
-            Y.append(np.expand_dims(y,axis=0))
-        
-        LOG_INFO('Appending Time Taken: {} s'.format(time.time()-start_time),'yellow')
-        start_time=time.time()
-        
-        X=np.vstack(X)
-        
-        LOG_INFO('X stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
-        start_time=time.time()
-        
-        Y=np.vstack(Y)
-        
-        LOG_INFO('Y stacking Time Taken: {} s'.format(time.time()-start_time),'yellow')
-        start_time=time.time()
-        
-        h5_dir=os.path.join(obj.base_save_dir,'H5Data')
-        if not os.path.exists(h5_dir):
-            os.mkdir(h5_dir)
-
-        h5_dir=os.path.join(h5_dir,obj.mode)
-        if not os.path.exists(h5_dir):
-            os.mkdir(h5_dir)
-
-        X_h5dir=os.path.join(h5_dir,'Images')
-        if not os.path.exists(X_h5dir):
-            os.mkdir(X_h5dir)
-
-        Y_h5dir=os.path.join(h5_dir,'Targets')
-        if not os.path.exists(Y_h5dir):
-            os.mkdir(Y_h5dir)
-
-
-        X_p=os.path.join(X_h5dir,'X_{}_{}.h5'.format(obj.mode,i))
-        
-        Y_p=os.path.join(Y_h5dir,'Y_{}_{}.h5'.format(obj.mode,i))
-        
-        saveh5(X_p,X)
-        
-        LOG_INFO('X H5 Saivng Time Taken: {} s'.format(time.time()-start_time),'yellow')
-        start_time=time.time()
-        
-        saveh5(Y_p,Y)
-        
-        LOG_INFO('Y H5 Saving Time Taken: {} s'.format(time.time()-start_time),'yellow')
-    
-    

@@ -1,13 +1,13 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 0.0.3    
+    Version: 1.0.0    
     Author : Md. Nazmuddoha Ansary    
                   
-![](/info/src_img/python.ico?raw=true )
-![](/info/src_img/tensorflow.ico?raw=true)
-![](/info/src_img/keras.ico?raw=true)
-![](/info/src_img/col.ico?raw=true)
+![](/F2O/info/src_img/python.ico?raw=true )
+![](/F2O/info/src_img/tensorflow.ico?raw=true)
+![](/F2O/info/src_img/keras.ico?raw=true)
+![](/F2O/info/src_img/col.ico?raw=true)
 
 # Version and Requirements
 * numpy==1.16.4  
@@ -22,7 +22,7 @@ Forged Image To Original Image Generation
 
 
 #  Preprocessing
-### config.json
+**config.json**
  Change The following Values in ***config.json*** 
 > data_dir      = Path to the specific Data Folder
 > save_dir      = Path to save the processed data
@@ -41,43 +41,22 @@ Forged Image To Original Image Generation
         "save_dir"     : "/home/ansary/RESEARCH/F2O/",
     }        
 
-### clear_mem.sh (Ubuntu/Linux)
-The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is as follows:
+**clear_mem.sh (Ubuntu/Linux)**
+The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is to run **sudo ./clear_mem.sh** in parallel with **main.py**
 
-1. run **main.py**
-2. run **sudo ./clear_mem.sh**
-
-### For Non-Ubuntu Users:
-If you have enough **RAM**, no issue will occur hopefully.If not, execute the scripts in **scripts** folder in the following order:
-* ***png.py***
-* ***H5s.py***
-* ***tfrecords.py*** 
-**NOTE**: The **png.py** must be executed prior to any other scripts 
-
-
-
-### Results:
-* If execution is successful a folder called **F2O_DataSet** should be created with the following folder tree:
+**Results**
+* If execution is successful a folder called **DataSet** should be created with the following folder tree:
 
             F2O_DataSet  
-            ├── H5Data
-            │   ├── Test
-            │   │   ├── Images
-            │   │   └── Targets
-            │   └── Train
-            │       ├── Images
-            │       └── Targets
             ├── Test
             ├── tfrecords
-            │   ├── Test
+            │   ├── Eval
             │   └── Train
             └── Train
 
-* The *'.png'* is a concatenated version of **ForgedImage|GroundTruth**
-> To understand the charecteristics of the *.png* data please read the Docstrings of **DataSet** class from  **core/utils.py**  
+* The Total Number of data: **16128** (Train=**12928** and Eval=**3200**) + **2640** (Test) 
 
-
-**USED ENVIRONMENT**  
+**ENVIRONMENT**  
 
     OS          : Ubuntu 18.04.3 LTS (64-bit) Bionic Beaver        
     Memory      : 7.7 GiB  
