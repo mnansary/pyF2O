@@ -5,7 +5,7 @@ from __future__ import print_function
 from termcolor import colored
 
 
-from F2O.utils import data_input_fn,get_tensors
+from F2O.utils import data_input_fn
 
 import numpy as np 
 import matplotlib.pyplot as plt 
@@ -18,7 +18,8 @@ class FLAGS:
     IMAGE_DIM       = 256
     NB_CHANNELS     = 3
     BATCH_SIZE      = 8
-    MAKE_ITERATOR   = True
+    SHUFFLE_BUFFER  = 10000
+    EPOCHS          = 2
 
 class PARAMS:
     NB_TOTAL_DATA       = 96
@@ -35,24 +36,12 @@ NB_EVAL     = PARAMS.NB_EVAL_DATA // FLAGS.BATCH_SIZE
 train_iterator = data_input_fn(FLAGS,'Train')
 eval_iterator  = data_input_fn(FLAGS,'Eval')
 
-X_train,Y_train =   get_tensors(train_iterator,NB_TRAIN)
-X_eval,Y_eval   =   get_tensors(eval_iterator,NB_EVAL)
-
-print(X_train.shape,Y_train.shape)
-print(X_eval.shape,Y_eval.shape)
 #---------------------------------------------------------------------------------------------
-def check_data(iterator):
-    images,targets=iterator.get_next()
+def check_data(dataset):
     with tf.Session() as sess:
-        x, y = sess.run([images,targets])
-        print(x.shape, y.shape)
-        for i in range(x.shape[0]):
-            plt.imshow(x[i])
-            plt.show()
-            plt.imshow(y[i])
-            plt.show()
-            plt.clf()
-            plt.close()
+        for img,target in dataset:
+            x, y = sess.run([img,target])
+            print(x.shape, y.shape)
         
 #--------------------------------------------------------------------------------------------------
 def build():
@@ -77,6 +66,6 @@ def tarin_debug(PARAMS):
         validation_steps=PARAMS.VALIDATION_STEPS
     )
 
-#check_data(train_iterator)
+#check_data(data_input_fn(FLAGS,'Train'))
 #check_data(eval_iterator)
 #tarin_debug(PARAMS)

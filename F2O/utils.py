@@ -232,7 +232,7 @@ def to_tfrecord(image_paths,obj,r_num):
                     'target':_bytes_feature(target_png_bytes)
             }
         
-            with tf.python_io.TFRecordWriter(tfrecord_path) as writer:
+            with tf.io.TFRecordWriter(tfrecord_path) as writer:
                 features=tf.train.Features(feature=data)
                 example= tf.train.Example(features=features)
                 serialized=example.SerializeToString()
@@ -249,7 +249,8 @@ def data_input_fn(FLAGS,MODE):
         IMAGE_DIM       = Dimension of Image
         NB_CHANNELS     = Depth of Image
         BATCH_SIZE      = batch size for traning
-        MAKE_ITERATOR   = Boolean Flag to make one_shot_itr
+        SHUFFLE_BUFFER  = Buffer Size > Batch Size
+        EPOCHS          = Num of epochs to repeat the dataset
     '''
     def _parser(example):
         feature ={  'image'  : tf.io.FixedLenFeature([],tf.string) ,
@@ -264,33 +265,16 @@ def data_input_fn(FLAGS,MODE):
         
         target_raw=parsed_example['target']
         target=tf.image.decode_png(target_raw,channels=FLAGS.NB_CHANNELS)
+        target=tf.cast(target,tf.float32)/255.0
         target=tf.reshape(target,(FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,FLAGS.NB_CHANNELS))
         
         return image,target 
-
-    
     file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,MODE,'*.tfrecord'))
-    dataset =   tf.data.TFRecordDataset(file_paths)
+    dataset = tf.data.TFRecordDataset(file_paths)
     dataset = dataset.map(_parser)
-    dataset = dataset.repeat()
+    dataset = dataset.shuffle(FLAGS.SHUFFLE_BUFFER)
+    dataset = dataset.repeat(FLAGS.EPOCHS)
     dataset = dataset.batch(FLAGS.BATCH_SIZE, drop_remainder=True)
+    return dataset
 
-    if FLAGS.MAKE_ITERATOR: 
-        return dataset.make_one_shot_iterator()
-    else:
-        return dataset
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------
-def get_tensors(iterator,NB_BATCHES):
-    images,targets=iterator.get_next()
-    with tf.Session() as sess:
-        for nb in range(NB_BATCHES):
-            x, y = sess.run([images,targets])
-            if nb==0:
-                X=x
-                Y=y
-            else:
-                X=np.concatenate((X,x),axis=0)
-                Y=np.concatenate((Y,y),axis=0)
-    return X,Y
 #--------------------------------------------------------------------------------------------------------------------------------------------------

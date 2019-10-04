@@ -13,7 +13,8 @@ import numpy as np
 import tensorflow as tf 
 import os 
 
-from keras.utils import plot_model
+
+from tensorflow.keras.utils import plot_model
 #-----------------------------------------------------------------------------------------------------------------------------
 def unet(image_dim=256,nb_channels=3,kernel_size=(3,3),strides=(2,2),padding='same',alpha=0.2):
     # input 
@@ -77,7 +78,7 @@ def inception_bn(X, nb_filters=16, kernel_sizes=[(1,1), (3,3), (5,5)]) :
 
 def lambda_fcn(X):
     _,nb_rows,nb_cols,_=K.int_shape(X)
-    return tf.image.resize_images(X,tf.constant([nb_rows*2,nb_cols*2],dtype = tf.int32),align_corners=True)
+    return tf.image.resize(X,tf.constant([nb_rows*2,nb_cols*2],dtype = tf.int32),align_corners=True)
 def lambda_out(in_shape):
     return tuple([in_shape[0],in_shape[1]*2,in_shape[2]*2,in_shape[3]])
 #-----------------------------------------------------------------------------------------------
@@ -111,6 +112,7 @@ if __name__ == "__main__":
     model=unet()
     model.summary()
     plot_model(model,to_file=os.path.join(os.getcwd(),'info','u-Net.png') ,show_shapes=True)
+    
     model=man_net()
     model.summary()
     plot_model(model,to_file=os.path.join(os.getcwd(),'info','man_net.png') ,show_shapes=True)
