@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 1.0.0    
+    Version: 2.0.0    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/F2O/info/src_img/python.ico?raw=true )
@@ -20,26 +20,16 @@ Forged Image To Original Image Generation
 2. Unzip **MICC-F2000.zip** *FOR TRAINING* and **MICC-F220** *FOR TESTING*   
         **The MICC-F2000 dataset contains a file named: nikon7_scale.jpg. It has to be renamed as nikon_7_scale.jpg.**         
 
-
 #  Preprocessing
 **config.json**
  Change The following Values in ***config.json*** 
-> data_dir      = Path to the specific Data Folder
-> save_dir      = Path to save the processed data
-> rename_flag   = If you renamed the file manually from step 2 *(Better way to avoid sys erros)* set this flag to **0** else set **1**  
 
-    "train":   
-    {  
-        "data_dir"     : "/home/ansary/RESEARCH/F2O/MICC-F2000/", 
-        "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "rename_flag"  : 0,
-    
-    },  
-    "test":  
-    {  
-        "data_dir"     : "/home/ansary/RESEARCH/F2O/MICC-F220/",
-        "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-    }        
+        "ARGS":
+        {
+            "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000S/",
+            "MICC-F220"         : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220S/",
+            "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/"
+        }
 
 **clear_mem.sh (Ubuntu/Linux)**
 The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is to run **sudo ./clear_mem.sh** in parallel with **main.py**
@@ -47,12 +37,17 @@ The complete preprocessing may take huge time and also cause to crash the system
 **Results**
 * If execution is successful a folder called **DataSet** should be created with the following folder tree:
 
-            F2O_DataSet  
-            ├── Test
-            ├── tfrecords
-            │   ├── Eval
-            │   └── Train
-            └── Train
+            DataSet  
+            ├── test
+            │   ├── image
+            │   └── target
+            ├── tfrecord
+            │   ├── eval
+            │   └── train
+            └── train
+                ├── image
+                └── target
+
 
 * The Total Number of data: **16128** (Train=**12928** and Eval=**3200**) + **2640** (Test) 
 

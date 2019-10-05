@@ -1,27 +1,26 @@
 {
-    "train":
+    "ARGS":
     {
-        "data_dir"     : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000/",
-        "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "image_dim"    : 256,
-        "dataset_name" : "MICC-F2000",
-        "rename_flag"  : 0,
-        "tamper_iden"  : "tamp",
-        "orig_iden"    : "_scale",
-        "batch_size"   : 128
-    
+        "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000/",
+        "MICC-F220"         : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220/",
+        "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/"
     },
-    "test":
+    "STATICS":
     {
-        "data_dir"     : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220/",
-        "save_dir"     : "/home/ansary/RESEARCH/F2O/",
-        "image_dim"    : 256,
-        "dataset_name" : "MICC-F220",
-        "rename_flag"  : 0,
-        "tamper_iden"  : "tamp",
-        "orig_iden"    : "_scale",
-        "batch_size"   : 128
-    }
-    
-}
+        "tamper_iden"       : "tamp",
+        "orig_iden"         : "_scale",
+        "image_dim"         : 256,
+        "nb_channels"       : 3,
+        "rot_angle_start"   : 0,
+        "rot_angle_end"     : 30,
+        "rot_angle_step"    : 5,
+        "shade_factor"      : 20,
+        "train_eval_split"  : 0.2,
+        "file_size"         : 1000,
+        "batch_size"        : 128,
+        "fid_num"           : 4,
+        "rename_data"       : "nikon7_scale.jpg,nikon_7_scale.jpg",
+        "prob_idens"        : "P1000231,DSCN47"
 
+    }
+} 

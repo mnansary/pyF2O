@@ -13,26 +13,26 @@ def readJson(file_name):
 
 config_data=readJson('config.json')
 
-class train_args:
-    data_dir    = config_data['train']['data_dir']
-    save_dir    = config_data['train']['save_dir']
-    image_dim   = config_data['train']['image_dim']
-    dataset_name= config_data['train']['dataset_name']
-    rename_flag = config_data['train']['rename_flag'] 
-    tamper_iden = config_data['train']['tamper_iden']
-    orig_iden   = config_data['train']['orig_iden']
-    batch_size  = config_data['train']['batch_size'] 
+class ARGS:
+    MICC_F2000     = config_data['ARGS']['MICC-F2000']
+    MICC_F220      = config_data['ARGS']['MICC-F220']
+    OUTPUT_DIR     = config_data['ARGS']['OUTPUT_DIR']
 
-class test_args:
-    data_dir    = config_data['test']['data_dir']
-    save_dir    = config_data['test']['save_dir']
-    image_dim   = config_data['test']['image_dim']
-    dataset_name= config_data['test']['dataset_name']
-    rename_flag = config_data['test']['rename_flag'] 
-    tamper_iden = config_data['test']['tamper_iden']
-    orig_iden   = config_data['test']['orig_iden']
-    batch_size  = config_data['test']['batch_size'] 
-
+class STATICS:
+    tamper_iden     = config_data['STATICS']["tamper_iden"]          
+    orig_iden       = config_data['STATICS']["orig_iden"]             
+    image_dim       = config_data['STATICS']["image_dim"]    
+    nb_channels     = config_data['STATICS']["nb_channels"]            
+    rot_angle_start = config_data['STATICS']["rot_angle_start"]      
+    rot_angle_end   = config_data['STATICS']["rot_angle_end"]    
+    rot_angle_step  = config_data['STATICS']["rot_angle_step"]    
+    shade_factor    = config_data['STATICS']["shade_factor"]    
+    train_eval_split= config_data['STATICS']["train_eval_split"]  
+    file_size       = config_data['STATICS']["file_size"]   
+    batch_size      = config_data['STATICS']["batch_size"]   
+    fid_num         = config_data['STATICS']["fid_num"]  
+    rename_data     = config_data['STATICS']["rename_data"]   
+    prob_idens      = config_data['STATICS']["prob_idens"]   
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 import time
@@ -44,60 +44,49 @@ from F2O.utils import LOG_INFO,DataSet,to_tfrecord
 
 def create_png():
     start_time=time.time()
-    LOG_INFO('CREATING TRAINING DATA with {}'.format(train_args.dataset_name),p_color='yellow')
-    obj=DataSet(train_args)
-    obj.preprocess()
-    LOG_INFO('CREATING TESTING DATA with {}'.format(test_args.dataset_name),p_color='yellow')
-    obj=DataSet(test_args)
-    obj.preprocess()
+    LOG_INFO('CREATING TRAINING DATA' ,p_color='yellow')
+    TRAIN_DS=DataSet(ARGS.MICC_F2000,'train',ARGS.OUTPUT_DIR,STATICS)
+    TRAIN_DS.create()
+    LOG_INFO('CREATING TESTING DATA ',p_color='yellow')
+    TEST_DS=DataSet(ARGS.MICC_F220,'test',ARGS.OUTPUT_DIR,STATICS)
+    TEST_DS.create()
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
+    return TRAIN_DS
 #-----------------------------------------------------------------------------------------------------------------------------------
-def create_tfrecord(args):
+def crop_len(nb_data,batch_size):
+    return (nb_data//batch_size)*batch_size
+
+def split_len(factor,nb_data):
+    return  nb_data - int(factor*nb_data)    
+
+def batch_and_create(paths,DS,mode):
+    new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
+    LOG_INFO('Creating TFRecords for {} Data'.format(mode))
+    fs=DS.STATICS.file_size
+    for i in range(0,len(new_paths),fs):
+        image_paths= new_paths[i:i+fs]        
+        r_num=i // fs
+        to_tfrecord(image_paths,DS,mode,r_num)
+    
+
+
+def create_tfrecord(DS):
     start_time=time.time()
-    obj=DataSet(args)
-    # get all paths
-    image_path_list=glob(os.path.join(obj.save_dir,'*.png'))
-    # exclude Target Paths
-    image_path_list=[img_path for img_path in image_path_list if "_target" not in img_path]  
-    # crop to batced length
-    bs=int(args.batch_size)
-    nb_data =len(image_path_list)
-    crop_len=(nb_data//bs)*bs
-    image_path_list=image_path_list[:crop_len]
-    nb_data =len(image_path_list)
-    # eval and train split (0.2)
-    nb_files=nb_data//bs
-    eval_nb=int(nb_files* 0.2)
-    train_nb=nb_files - eval_nb
-
-    train_len=train_nb*bs 
-    
-    train_image_paths=image_path_list[:train_len]
-    eval_image_paths=image_path_list[train_len:]
-
-    # train files
-    obj.mode='Train'
-    LOG_INFO('Creating TFRecords for {} Data'.format(obj.mode))
-    for i in range(0,len(train_image_paths),bs):
-        image_paths= train_image_paths[i:i+bs]        
-        r_num=i // bs
-        to_tfrecord(image_paths,obj,r_num)
-    
-    # eval files
-    obj.mode='Eval'
-    LOG_INFO('Creating TFRecords for {} Data'.format(obj.mode))
-    for i in range(0,len(eval_image_paths),bs):
-        image_paths= eval_image_paths[i:i+bs]        
-        r_num=i // bs
-        to_tfrecord(image_paths,obj,r_num)
-    
+    image_path_list=glob(os.path.join(DS.image_dir,'*.png'))
+    # eval and train split
+    _len=split_len(DS.STATICS.train_eval_split,len(image_path_list)) 
+    train_image_paths=image_path_list[:_len]
+    eval_image_paths=image_path_list[_len:]
+    # tfrecords
+    batch_and_create(train_image_paths,DS,'train')
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
+    batch_and_create(eval_image_paths ,DS,'eval' )
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def main(arg):
     start_time=time.time()
-    create_png()
-    create_tfrecord(train_args)    
+    TRAIN_DS=create_png()
+    create_tfrecord(TRAIN_DS)    
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     
     
