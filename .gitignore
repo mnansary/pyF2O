@@ -105,3 +105,4 @@ venv.bak/
 .vscode/*
 
 F2O/model_weights/*.h5
+UNSTABLE_SCRIPTS/*

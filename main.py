@@ -59,7 +59,7 @@ def crop_len(nb_data,batch_size):
 def split_len(factor,nb_data):
     return  nb_data - int(factor*nb_data)    
 
-def batch_and_create(paths,DS,mode):
+def tfcreate(paths,DS,mode):
     new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
     LOG_INFO('Creating TFRecords for {} Data'.format(mode))
     fs=DS.STATICS.file_size
@@ -78,14 +78,15 @@ def create_tfrecord(DS):
     train_image_paths=image_path_list[:_len]
     eval_image_paths=image_path_list[_len:]
     # tfrecords
-    batch_and_create(train_image_paths,DS,'train')
+    tfcreate(train_image_paths,DS,'train')
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
-    batch_and_create(eval_image_paths ,DS,'eval' )
+    tfcreate(eval_image_paths ,DS,'eval' )
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def main(arg):
     start_time=time.time()
     TRAIN_DS=create_png()
+
     create_tfrecord(TRAIN_DS)    
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     

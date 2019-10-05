@@ -199,18 +199,18 @@ def to_tfrecord(image_paths,DS,mode,r_num):
     # Tfrecord Info
     tfrecord_name='{}_{}.tfrecord'.format(mode,r_num)
     tfrecord_path=os.path.join(save_dir,tfrecord_name) 
-    for image_path in image_paths:
-        LOG_INFO('Converting: {} '.format(image_path))
-        target_path=str(image_path).replace('image','target')
-        LOG_INFO('Converting: {} '.format(target_path),p_color='cyan')
-        with(open(image_path,'rb')) as fid:
-            image_png_bytes=fid.read()
-        with(open(target_path,'rb')) as fid:
-            target_png_bytes=fid.read()
-        data ={ 'image':_bytes_feature(image_png_bytes),
-                'target':_bytes_feature(target_png_bytes)
-        }
-        with tf.io.TFRecordWriter(tfrecord_path) as writer:
+    with tf.io.TFRecordWriter(tfrecord_path) as writer:    
+        for image_path in image_paths:
+            LOG_INFO('Converting: {} '.format(image_path))
+            target_path=str(image_path).replace('image','target')
+            LOG_INFO('Converting: {} '.format(target_path),p_color='cyan')
+            with(open(image_path,'rb')) as fid:
+                image_png_bytes=fid.read()
+            with(open(target_path,'rb')) as fid:
+                target_png_bytes=fid.read()
+            data ={ 'image':_bytes_feature(image_png_bytes),
+                    'target':_bytes_feature(target_png_bytes)
+            }
             features=tf.train.Features(feature=data)
             example= tf.train.Example(features=features)
             serialized=example.SerializeToString()
