@@ -86,7 +86,6 @@ def create_tfrecord(DS):
 def main(arg):
     start_time=time.time()
     TRAIN_DS=create_png()
-
     create_tfrecord(TRAIN_DS)    
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     

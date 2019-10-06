@@ -16,7 +16,7 @@
         "rot_angle_step"    : 5,
         "shade_factor"      : 20,
         "train_eval_split"  : 0.2,
-        "file_size"         : 1000,
+        "file_size"         : 650,
         "batch_size"        : 128,
         "fid_num"           : 4,
         "rename_data"       : "nikon7_scale.jpg,nikon_7_scale.jpg",
