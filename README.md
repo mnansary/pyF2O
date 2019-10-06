@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 2.0.0    
+    Version: 2.0.1    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/F2O/info/src_img/python.ico?raw=true )

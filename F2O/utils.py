@@ -218,6 +218,42 @@ def to_tfrecord(image_paths,DS,mode,r_num):
     LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
+def data_input_fn(FLAGS,params): 
+    '''
+    This Function generates data from provided FLAGS
+    FLAGS must include:
+        TFRECORDS_PATH  = Path to tfrecords
+        MODE            = 'train/eval'
+        IMAGE_DIM       = Dimension of Image
+        NB_CHANNELS     = Depth of Image
+        BATCH_SIZE      = batch size for traning
+        SHUFFLE_BUFFER  = Buffer Size > Batch Size
+        params          = Needed for estimator to pass batch size
+    '''
+    
+    def _parser(example):
+        feature ={  'image'  : tf.io.FixedLenFeature([],tf.string) ,
+                    'target' : tf.io.FixedLenFeature([],tf.string)
+        }    
+        parsed_example=tf.io.parse_single_example(example,feature)
+        image_raw=parsed_example['image']
+        image=tf.image.decode_png(image_raw,channels=FLAGS.NB_CHANNELS)
+        image=tf.cast(image,tf.float32)/255.0
+        image=tf.reshape(image,(FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,FLAGS.NB_CHANNELS))
+        
+        target_raw=parsed_example['target']
+        target=tf.image.decode_png(target_raw,channels=FLAGS.NB_CHANNELS)
+        target=tf.cast(target,tf.float32)/255.0
+        target=tf.reshape(target,(FLAGS.IMAGE_DIM,FLAGS.IMAGE_DIM,FLAGS.NB_CHANNELS))
+        
+        return image,target
 
+    file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,FLAGS.MODE,'*.tfrecord'))
+    dataset = tf.data.TFRecordDataset(file_paths)
+    dataset = dataset.shuffle(FLAGS.SHUFFLE_BUFFER,reshuffle_each_iteration=True)
+    dataset = dataset.map(_parser)
+    dataset = dataset.repeat()
+    dataset = dataset.batch(FLAGS.BATCH_SIZE,drop_remainder=True)
+    return dataset
 
 
