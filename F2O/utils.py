@@ -17,7 +17,7 @@ import tensorflow as tf
 import time
 
 from functools import partial
-#--------------------------------------------------------------COMMON------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------
 def LOG_INFO(log_text,p_color='green'):
     print(colored('#    LOG:','blue')+colored(log_text,p_color))
 
@@ -107,21 +107,76 @@ class DataSet(object):
             base_name=os.path.basename(base_path)
             iden_name=base_name[:base_name.find( self.STATICS.tamper_iden)]
             gt_path=self.GT_Paths[self.GT_Idens.index(iden_name)]
-            # Load IMAGE and GROUNDTRUTH
-            IMG=imgop.open(img_path)
-            GT=imgop.open(gt_path)
-            
+            # Load IMAGE  
+            i_o=imgop.open(img_path)
             # Resize 
-            IMG=IMG.resize((self.STATICS.image_dim,self.STATICS.image_dim))
-            GT=GT.resize((self.STATICS.image_dim,self.STATICS.image_dim))
-            
+            IMG=i_o.resize((self.STATICS.image_dim,self.STATICS.image_dim))
+            # GROUNDTRUTH
+            GT=imgop.open(gt_path)
+            # bbox
+            i_o=np.array(i_o)
+            g_o=np.array(GT)
+            diff= i_o - g_o
+            GT=self.__cropGT(diff,GT) 
             # Create Rotations
             for rot_angle in rotation_angles:
                 rot_img=IMG.rotate(rot_angle)
                 rot_gt=GT.rotate(rot_angle)
                 self.__saveTransposedData(rot_img,rot_gt,base_name,rot_angle)            
     
+    def __getBbox(self,data):
+        rows = np.any(data, axis=1)
+        cols = np.any(data, axis=0)
+        rmin,rmax = np.where(rows)[0][[0, -1]]
+        cmin,cmax = np.where(cols)[0][[0, -1]]
+        return rmin,rmax,cmin,cmax
     
+    def __pad(self,rmin,rmax,cmin,cmax,diff):
+        _pad=512
+        cmin -=_pad
+        rmin -=_pad
+        cmax +=_pad
+        rmax +=_pad
+        # margin correction
+        if cmin < 0:
+            cmin = 0
+        if rmin < 0:
+            rmin = 0
+        if cmax > diff.shape[1]:
+            cmax=diff.shape[1]
+        if rmax > diff.shape[0]:
+            rmax=diff.shape[0]
+        return rmin,rmax,cmin,cmax
+    
+    def __cropGT(self,diff,GT):
+        # diff 
+        rmin,rmax,cmin,cmax = self.__getBbox(diff)
+        rmin,rmax,cmin,cmax = self.__pad(rmin,rmax,cmin,cmax,diff) 
+        # cropped
+        Cropped =   np.array(GT.crop((cmin,rmin,cmax,rmax)))
+        # base
+        Base    =   imgop.fromarray(diff)
+        Base    =   np.array(Base.crop((cmin,rmin,cmax,rmax)))
+        # single channel
+        D1=np.sum(Cropped,axis=-1)/(self.STATICS.shade_factor/2)
+        D1=D1.astype(np.uint8)
+        # 3 channel 
+        D3 = np.zeros(Cropped.shape,'uint8')
+        D3[:,:, 0] = D1
+        D3[:,:, 1] = D1
+        D3[:,:, 2] = D1
+        # set cropped data
+        rmin,rmax,cmin,cmax=self.__getBbox(Base)
+        D3[rmin:rmax+1, cmin:cmax+1]=Cropped[rmin:rmax+1, cmin:cmax+1]
+        plt.imshow(D3)
+        plt.show()
+        GT=imgop.fromarray(D3)
+        plt.imshow(GT)
+        plt.show()
+        # resize
+        GT=GT.resize((self.STATICS.image_dim,self.STATICS.image_dim))
+        return GT 
+
     def __saveTransposedData(self,rot_img,rot_gt,base_name,rot_angle):
         for fid in range(self.STATICS.fid_num):
             rand_id=random.randint(0,10E4)
@@ -129,17 +184,7 @@ class DataSet(object):
             file_name='{}_{}_fid-{}_angle-{}'.format(rand_id,base_name,fid,rot_angle)
             self.__saveData(x,'image',file_name)
             self.__saveData(y,'target',file_name)
-            
-    def __brightenArea(self,m,Y,y):
-        rows = np.any(m, axis=1)
-        cols = np.any(m, axis=0)
-        ymin, ymax = np.where(rows)[0][[0, -1]]
-        xmin, xmax = np.where(cols)[0][[0, -1]]
-        Y[ymin:ymax+1, xmin:xmax+1]=y[ymin:ymax+1, xmin:xmax+1]
-        Y[ymin:ymax+1, xmin:xmax+1]+=(self.STATICS.shade_factor*4)
-        Y[Y>255]=255
-        return Y 
-        
+                
     def __getFlipDataById(self,img,gt,fid):
         if fid==0:# ORIGINAL
             x=np.array(img)
@@ -156,21 +201,8 @@ class DataSet(object):
             y=gt.transpose(imgop.FLIP_TOP_BOTTOM)
             y=np.array(y.transpose(imgop.FLIP_LEFT_RIGHT))
         
-        # region data
-        m=x-y
-        # shading
-        Yc=np.sum(y,axis=-1)/(self.STATICS.shade_factor/2)
-        Yc=Yc.astype(np.uint8)
-        
-        # target
-        Y = np.zeros((self.STATICS.image_dim,self.STATICS.image_dim,self.STATICS.nb_channels),'uint8')
-        Y[:,:, 0] = Yc
-        Y[:,:, 1] = Yc
-        Y[:,:, 2] = Yc
-        # brighten area
-        Y=self.__brightenArea(m,Y,y)
-        return x,Y
-
+        return x,y
+    
     def __saveData(self,data,identifier,file_name):
         if identifier   =='image':
             save_dir    =   self.image_dir
