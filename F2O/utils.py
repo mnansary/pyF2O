@@ -130,7 +130,15 @@ class DataSet(object):
             self.__saveData(x,'image',file_name)
             self.__saveData(y,'target',file_name)
             
-        
+    def __brightenArea(self,m,Y,y):
+        rows = np.any(m, axis=1)
+        cols = np.any(m, axis=0)
+        ymin, ymax = np.where(rows)[0][[0, -1]]
+        xmin, xmax = np.where(cols)[0][[0, -1]]
+        Y[ymin:ymax+1, xmin:xmax+1]=y[ymin:ymax+1, xmin:xmax+1]
+        Y[ymin:ymax+1, xmin:xmax+1]+=(self.STATICS.shade_factor*4)
+        Y[Y>255]=255
+        return Y 
         
     def __getFlipDataById(self,img,gt,fid):
         if fid==0:# ORIGINAL
@@ -150,14 +158,17 @@ class DataSet(object):
         
         # region data
         m=x-y
-        # target
-        Yc=np.sum(y,axis=-1)/self.STATICS.shade_factor
+        # shading
+        Yc=np.sum(y,axis=-1)/(self.STATICS.shade_factor/2)
         Yc=Yc.astype(np.uint8)
+        
+        # target
         Y = np.zeros((self.STATICS.image_dim,self.STATICS.image_dim,self.STATICS.nb_channels),'uint8')
         Y[:,:, 0] = Yc
         Y[:,:, 1] = Yc
         Y[:,:, 2] = Yc
-        Y[m!=0]=y[m!=0]
+        # brighten area
+        Y=self.__brightenArea(m,Y,y)
         return x,Y
 
     def __saveData(self,data,identifier,file_name):

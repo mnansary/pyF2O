@@ -45,7 +45,7 @@ VALIDATION_STEPS    =  NB_EVAL_DATA //FLAGS.BATCH_SIZE
 def train_in_fn():
     return data_input_fn(FLAGS,'train')
 def eval_in_fn():
-    FLAGS.TFRECORDS_DIR=str(FLAGS.TFRECORDS_DIR).replace('train','eval')
+    FLAGS.MODE='eval'
     return data_input_fn(FLAGS,'eval')
 
 def build():
