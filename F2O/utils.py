@@ -132,7 +132,7 @@ class DataSet(object):
         return rmin,rmax,cmin,cmax
     
     def __pad(self,rmin,rmax,cmin,cmax,diff):
-        _pad=512
+        _pad=128
         cmin -=_pad
         rmin -=_pad
         cmax +=_pad
@@ -168,11 +168,7 @@ class DataSet(object):
         # set cropped data
         rmin,rmax,cmin,cmax=self.__getBbox(Base)
         D3[rmin:rmax+1, cmin:cmax+1]=Cropped[rmin:rmax+1, cmin:cmax+1]
-        plt.imshow(D3)
-        plt.show()
         GT=imgop.fromarray(D3)
-        plt.imshow(GT)
-        plt.show()
         # resize
         GT=GT.resize((self.STATICS.image_dim,self.STATICS.image_dim))
         return GT 
