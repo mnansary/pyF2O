@@ -4,10 +4,10 @@ Forged Image To Original Image Generation
     Version: 2.0.3    
     Author : Md. Nazmuddoha Ansary    
                   
-![](/F2O/info/src_img/python.ico?raw=true )
-![](/F2O/info/src_img/tensorflow.ico?raw=true)
-![](/F2O/info/src_img/keras.ico?raw=true)
-![](/F2O/info/src_img/col.ico?raw=true)
+![](/INFO/src_img/python.ico?raw=true )
+![](/INFO/src_img/tensorflow.ico?raw=true)
+![](/INFO/src_img/keras.ico?raw=true)
+![](/INFO/src_img/col.ico?raw=true)
 
 # Version and Requirements
 * numpy==1.16.4  
