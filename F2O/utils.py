@@ -108,16 +108,11 @@ class DataSet(object):
             iden_name=base_name[:base_name.find( self.STATICS.tamper_iden)]
             gt_path=self.GT_Paths[self.GT_Idens.index(iden_name)]
             # Load IMAGE  
-            i_o=imgop.open(img_path)
-            # Resize 
-            IMG=i_o.resize((self.STATICS.image_dim,self.STATICS.image_dim))
-            # GROUNDTRUTH
+            IMG=imgop.open(img_path)
+            # Load GROUNDTRUTH
             GT=imgop.open(gt_path)
-            # bbox
-            i_o=np.array(i_o)
-            g_o=np.array(GT)
-            diff= i_o - g_o
-            GT=self.__cropGT(diff,GT) 
+            # Crop Data
+            IMG,GT=self.__cropData(IMG,GT) 
             # Create Rotations
             for rot_angle in rotation_angles:
                 rot_img=IMG.rotate(rot_angle)
@@ -148,30 +143,38 @@ class DataSet(object):
             rmax=diff.shape[0]
         return rmin,rmax,cmin,cmax
     
-    def __cropGT(self,diff,GT):
+    def __cropData(self,IMG,GT):
+        # manipulation
+        i_o=np.array(IMG)
+        g_o=np.array(GT)
+        diff= i_o - g_o
         # diff 
         rmin,rmax,cmin,cmax = self.__getBbox(diff)
         rmin,rmax,cmin,cmax = self.__pad(rmin,rmax,cmin,cmax,diff) 
-        # cropped
-        Cropped =   np.array(GT.crop((cmin,rmin,cmax,rmax)))
+        # cropped Data
+        CroppedGT =   np.array(GT.crop((cmin,rmin,cmax,rmax)))
+        IMG       =   IMG.crop((cmin,rmin,cmax,rmax))
         # base
         Base    =   imgop.fromarray(diff)
         Base    =   np.array(Base.crop((cmin,rmin,cmax,rmax)))
-        # single channel
-        D1=np.sum(Cropped,axis=-1)/(self.STATICS.shade_factor/2)
+        # single channel Target
+        D1=np.sum(CroppedGT,axis=-1)/(self.STATICS.shade_factor/4)
         D1=D1.astype(np.uint8)
-        # 3 channel 
-        D3 = np.zeros(Cropped.shape,'uint8')
+        # array
+        D3 = np.zeros(CroppedGT.shape,'uint8')
+        # 3 channel Target
         D3[:,:, 0] = D1
         D3[:,:, 1] = D1
         D3[:,:, 2] = D1
         # set cropped data
         rmin,rmax,cmin,cmax=self.__getBbox(Base)
-        D3[rmin:rmax+1, cmin:cmax+1]=Cropped[rmin:rmax+1, cmin:cmax+1]
+        D3[rmin:rmax+1, cmin:cmax+1]=CroppedGT[rmin:rmax+1, cmin:cmax+1]
+        # IMAGE OBJ
         GT=imgop.fromarray(D3)
         # resize
         GT=GT.resize((self.STATICS.image_dim,self.STATICS.image_dim))
-        return GT 
+        IMG=IMG.resize((self.STATICS.image_dim,self.STATICS.image_dim))
+        return IMG,GT 
 
     def __saveTransposedData(self,rot_img,rot_gt,base_name,rot_angle):
         for fid in range(self.STATICS.fid_num):
@@ -196,7 +199,6 @@ class DataSet(object):
             x=np.array(x.transpose(imgop.FLIP_LEFT_RIGHT))
             y=gt.transpose(imgop.FLIP_TOP_BOTTOM)
             y=np.array(y.transpose(imgop.FLIP_LEFT_RIGHT))
-        
         return x,y
     
     def __saveData(self,data,identifier,file_name):
