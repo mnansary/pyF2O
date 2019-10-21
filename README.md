@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 2.0.3    
+    Version: 2.1.0    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/INFO/src_img/python.ico?raw=true )
@@ -11,7 +11,7 @@ Forged Image To Original Image Generation
 
 # Version and Requirements
 * numpy==1.16.4  
-* tensorflow==1.13.1        
+* tensorflow==1.14.0        
 * Python == 3.6.8
 > Create a Virtualenv and *pip3 install -r requirements.txt*
 
