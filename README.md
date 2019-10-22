@@ -9,6 +9,7 @@ Forged Image To Original Image Generation
 ![](/INFO/src_img/keras.ico?raw=true)
 ![](/INFO/src_img/col.ico?raw=true)
 ![](/INFO/src_img/bucket.ico?raw=true)
+![](/INFO/src_img/tpu.ico?raw=true)
 
 # Version and Requirements
 * numpy==1.16.4  
@@ -61,14 +62,28 @@ The complete preprocessing may take huge time and also cause to crash the system
     Gnome       : 3.28.2  
 
 #  GCS
+![](/INFO/src_img/bucket.ico?raw=true)
 TPU training with tfrecord is not implemented for **Tensorflow  1.14.0** as of  **21-10-2019** and  **Tensorflow 2.0** does not have TPU support yet. Hopefully local implementation will be available soon enough. For using TPU in colab, a **bucket** must be created in **GCS** and connected for :
 *   saving model checkpoints 
 *   loading data
+
+# Colab and TPU(Tensor Processing Unit)
+![](/INFO/src_img/col.ico?raw=true)
+![](/INFO/src_img/tpu.ico?raw=true)
+
+*TPU’s have been recently added to the Google Colab portfolio making it even more attractive for quick-and-dirty machine learning projects when your own local processing units are just not fast enough. While the **Tesla K80** available in Google Colab delivers respectable **1.87 TFlops** and has **12GB RAM**, the **TPUv2** available from within Google Colab comes with a whopping **180 TFlops**, give or take. It also comes with **64 GB** High Bandwidth Memory **(HBM)**.*
+[Visit This For More Info](https://medium.com/@jannik.zuern/using-a-tpu-in-google-colab-54257328d7da)  
+
 
 # pix2pix
 Pix2Pix is based on the original paper: [Image-to-Image Translation with Conditional Adversarial Nets](https://phillipi.github.io/pix2pix/)
 ## Acknowledgement
 The implementation used here is completely borrowed (with very very minimal changes) from [@agermanidis's implementation of pix2pix-tpu ](https://github.com/agermanidis/pix2pix-tpu)
+
 For GPU in colab: [Follow This Link](https://www.tensorflow.org/tutorials/generative/pix2pix) 
+
+![](/INFO/p2p.jpg?raw=true)  
+
+[Image Source](https://neurohive.io/en/popular-networks/pix2pix-image-to-image-translation/)
 
 
