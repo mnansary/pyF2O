@@ -8,8 +8,6 @@ Forged Image To Original Image Generation
 ![](/INFO/src_img/tensorflow.ico?raw=true)
 ![](/INFO/src_img/keras.ico?raw=true)
 ![](/INFO/src_img/col.ico?raw=true)
-![](/INFO/src_img/bucket.ico?raw=true)
-![](/INFO/src_img/tpu.ico?raw=true)
 
 # Version and Requirements
 * numpy==1.16.4  
