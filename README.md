@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 2.1.0    
+    Version: 2.2.0    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/INFO/src_img/python.ico?raw=true )
@@ -43,6 +43,7 @@ The complete preprocessing may take huge time and also cause to crash the system
             │   └── target
             ├── tfrecord
             │   ├── eval
+            │   ├── test
             │   └── train
             └── train
                 ├── image

@@ -60,7 +60,11 @@ def split_len(factor,nb_data):
     return  nb_data - int(factor*nb_data)    
 
 def tfcreate(paths,DS,mode):
-    new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
+    if mode=='test':
+        new_paths=paths
+    else:
+        new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
+
     LOG_INFO('Creating TFRecords for {} Data'.format(mode))
     fs=DS.STATICS.file_size
     for i in range(0,len(new_paths),fs):
@@ -81,12 +85,18 @@ def create_tfrecord(DS):
     tfcreate(train_image_paths,DS,'train')
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     tfcreate(eval_image_paths ,DS,'eval' )
+
+def create_testData():
+    DS=DataSet(ARGS.MICC_F220,'test',ARGS.OUTPUT_DIR,STATICS)
+    image_paths=glob(os.path.join(DS.image_dir,'*.png'))
+    tfcreate(image_paths,DS,'test')
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def main(arg):
     start_time=time.time()
     TRAIN_DS=create_png()
-    create_tfrecord(TRAIN_DS)    
+    create_tfrecord(TRAIN_DS)
+    create_testData()    
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     
     

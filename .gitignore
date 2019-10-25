@@ -104,5 +104,4 @@ venv.bak/
 .mypy_cache/
 .vscode/*
 
-F2O/model_weights/*.h5
-UNSTABLE_SCRIPTS/*
+pred_script.py
