@@ -22,6 +22,9 @@ def _conv2d(x, filters, kernel_size=3, stride=2):
     return tf.keras.layers.Conv2D(filters,kernel_size,strides=(stride,stride),padding='same',kernel_initializer=initializer)(x)
 def _deconv2d(x, filters, kernel_size=3, stride=2):
     return tf.keras.layers.Conv2DTranspose(filters,kernel_size,strides=(stride,stride),padding='same',kernel_initializer=initializer)(x)
+def _dis_conv2d(x, filters, kernel_size=3, stride=2):
+    padded_input = tf.pad(x, [[0, 0], [1, 1], [1, 1], [0, 0]], mode="CONSTANT")
+    return tf.keras.layers.Conv2D(filters,kernel_size,strides=(stride,stride),padding='valid',kernel_initializer=initializer)(padded_input)
 #---------------------------------------------------------------------------------------------------------------------------
 def generator_fn(generator_inputs):
     # fixed args
@@ -114,7 +117,7 @@ def discriminator_fn(discrim_inputs, discrim_targets):
     _input = tf.concat([discrim_inputs, discrim_targets], axis=3)
     # layer_1: [batch, 256, 256, in_channels * 2] => [batch, 128, 128, ndf]
     with tf.compat.v1.variable_scope("layer_1"):
-        convolved = _conv2d(_input,ndf)
+        convolved = _dis_conv2d(_input,ndf)
         rectified = _leaky_relu(convolved)
         layers.append(rectified)
     # layer_2: [batch, 128, 128, ndf] => [batch, 64, 64, ndf * 2]
@@ -124,13 +127,13 @@ def discriminator_fn(discrim_inputs, discrim_targets):
         with tf.compat.v1.variable_scope("layer_%d" % (len(layers) + 1)):
             out_channels = ndf * min(2**(i + 1), 8)
             stride = 1 if i == n_layers - 1 else 2  # last layer here has stride 1
-            convolved = _conv2d(layers[-1], out_channels, stride=stride)
+            convolved = _dis_conv2d(layers[-1], out_channels, stride=stride)
             normalized = _batch_norm(convolved)
             rectified = _leaky_relu(normalized)
             layers.append(rectified)
     # layer_5: [batch, 31, 31, ndf * 8] => [batch, 30, 30, 1]
     with tf.compat.v1.variable_scope("layer_%d" % (len(layers) + 1)):
-        convolved = _conv2d(rectified,1,stride=1)
+        convolved = _dis_conv2d(rectified,1,stride=1)
         output = tf.sigmoid(convolved)
         layers.append(output)
     return layers[-1]
