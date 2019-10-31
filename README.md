@@ -41,7 +41,7 @@ The complete preprocessing may take huge time and also cause to crash the system
             positional arguments:
             exec_flag   
                                                     Execution Flag for creating files 
-                                                    Available Flags: prep,train,eval,comb
+                                                    Available Flags: 
                                                     png       = create images
                                                     tfrecords = create tfrecords
                                                     comb      = combined execution
