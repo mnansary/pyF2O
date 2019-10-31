@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 2.2.0    
+    Version: 2.2.1    
     Author : Md. Nazmuddoha Ansary    
                   
 ![](/INFO/src_img/python.ico?raw=true )
@@ -34,6 +34,30 @@ Forged Image To Original Image Generation
 **clear_mem.sh (Ubuntu/Linux)**
 The complete preprocessing may take huge time and also cause to crash the system due to high memory useage. A way around is built for **Ubuntu** users is to run **sudo ./clear_mem.sh** in parallel with **main.py**
 
+            usage: main.py [-h] exec_flag
+
+            Forged Image To Original Image Reconstruction
+
+            positional arguments:
+            exec_flag   
+                                                    Execution Flag for creating files 
+                                                    Available Flags: prep,train,eval,comb
+                                                    png       = create images
+                                                    tfrecords = create tfrecords
+                                                    comb      = combined execution
+                                                    PLEASE NOTE:
+                                                    For Separate Run the following order must be maintained:
+                                                    1) png
+                                                    2) tfrecords
+                                                    
+                                                    
+
+            optional arguments:
+            -h, --help  show this help message and exit
+
+
+
+
 **Results**
 * If execution is successful a folder called **DataSet** should be created with the following folder tree:
 
@@ -42,7 +66,6 @@ The complete preprocessing may take huge time and also cause to crash the system
             │   ├── image
             │   └── target
             ├── tfrecord
-            │   ├── eval
             │   ├── test
             │   └── train
             └── train
@@ -50,7 +73,7 @@ The complete preprocessing may take huge time and also cause to crash the system
                 └── target
 
 
-* The Total Number of data: **16128** (Train=**12928** and Eval=**3200**) + **2640** (Test) 
+* The Total Number of data: **16128** (Train) + **2640** (Test) 
 
 **ENVIRONMENT**  
 

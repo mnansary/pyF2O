@@ -4,7 +4,24 @@
 """
 from __future__ import print_function
 from termcolor import colored
-
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+import argparse
+parser = argparse.ArgumentParser(description='Forged Image To Original Image Reconstruction',
+                                formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("exec_flag", 
+                    help='''
+                            Execution Flag for creating files 
+                            Available Flags: prep,train,eval,comb
+                            png       = create images
+                            tfrecords = create tfrecords
+                            comb      = combined execution
+                            PLEASE NOTE:
+                            For Separate Run the following order must be maintained:
+                            1) png
+                            2) tfrecords
+                            
+                            ''')
+args = parser.parse_args()
 #-----------------------------------------------------Load Config----------------------------------------------------------
 import json
 
@@ -27,7 +44,6 @@ class STATICS:
     rot_angle_end   = config_data['STATICS']["rot_angle_end"]    
     rot_angle_step  = config_data['STATICS']["rot_angle_step"]    
     shade_factor    = config_data['STATICS']["shade_factor"]    
-    train_eval_split= config_data['STATICS']["train_eval_split"]  
     file_size       = config_data['STATICS']["file_size"]   
     batch_size      = config_data['STATICS']["batch_size"]   
     fid_num         = config_data['STATICS']["fid_num"]  
@@ -51,7 +67,6 @@ def create_png():
     TEST_DS=DataSet(ARGS.MICC_F220,'test',ARGS.OUTPUT_DIR,STATICS)
     TEST_DS.create()
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
-    return TRAIN_DS
 #-----------------------------------------------------------------------------------------------------------------------------------
 def crop_len(nb_data,batch_size):
     return (nb_data//batch_size)*batch_size
@@ -71,20 +86,12 @@ def tfcreate(paths,DS,mode):
         image_paths= new_paths[i:i+fs]        
         r_num=i // fs
         to_tfrecord(image_paths,DS,mode,r_num)
-    
+#-----------------------------------------------------------------------------------------------------------------------------------
 
-
-def create_tfrecord(DS):
-    start_time=time.time()
-    image_path_list=glob(os.path.join(DS.image_dir,'*.png'))
-    # eval and train split
-    _len=split_len(DS.STATICS.train_eval_split,len(image_path_list)) 
-    train_image_paths=image_path_list[:_len]
-    eval_image_paths=image_path_list[_len:]
-    # tfrecords
-    tfcreate(train_image_paths,DS,'train')
-    LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
-    tfcreate(eval_image_paths ,DS,'eval' )
+def create_trainData():
+    DS=DataSet(ARGS.MICC_F2000,'train',ARGS.OUTPUT_DIR,STATICS)
+    image_paths=glob(os.path.join(DS.image_dir,'*.png'))
+    tfcreate(image_paths,DS,'train')
 
 def create_testData():
     DS=DataSet(ARGS.MICC_F220,'test',ARGS.OUTPUT_DIR,STATICS)
@@ -92,13 +99,22 @@ def create_testData():
     tfcreate(image_paths,DS,'test')
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def main(arg):
+def main(args):
     start_time=time.time()
-    TRAIN_DS=create_png()
-    create_tfrecord(TRAIN_DS)
-    create_testData()    
+    if args.exec_flag=='png':
+        create_png()
+    elif args.exec_flag=='tfrecords':
+        create_trainData()
+        create_testData()
+    elif args.exec_flag=='comb':
+        create_png()
+        create_trainData()
+        create_testData()
+    else:
+        raise ValueError('CHECK FLAG: (png,tfrecords,comb)')
+            
     LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
     
     
 if __name__ == "__main__":
-    main('MERUL')
+    main(args)
