@@ -2,7 +2,11 @@
 Forged Image To Original Image Generation
 
     Version: 2.2.1    
-    Author : Md. Nazmuddoha Ansary    
+    Author : Md. Nazmuddoha Ansary
+             Shakir Hossain  
+             Mohammad Bin Monjil  
+             Habibur Rahman  
+             Shahriar Prince  
                   
 ![](/INFO/src_img/python.ico?raw=true )
 ![](/INFO/src_img/tensorflow.ico?raw=true)
