@@ -50,7 +50,7 @@ class STATICS:
     rename_data     = config_data['STATICS']["rename_data"]   
     prob_idens      = config_data['STATICS']["prob_idens"]   
 #-----------------------------------------------------------------------------------------------------------------------------------
-
+from progressbar import ProgressBar
 import time
 import os
 import numpy as np 
@@ -59,14 +59,13 @@ from F2O.utils import LOG_INFO,DataSet,to_tfrecord
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def create_png():
-    start_time=time.time()
-    LOG_INFO('CREATING TRAINING DATA' ,p_color='yellow')
+    LOG_INFO('CREATING TRAINING DATA' ,p_color='yellow',rep=True)
     TRAIN_DS=DataSet(ARGS.MICC_F2000,'train',ARGS.OUTPUT_DIR,STATICS)
     TRAIN_DS.create()
-    LOG_INFO('CREATING TESTING DATA ',p_color='yellow')
+    LOG_INFO('CREATING TESTING DATA ',p_color='yellow',rep=True)
     TEST_DS=DataSet(ARGS.MICC_F220,'test',ARGS.OUTPUT_DIR,STATICS)
     TEST_DS.create()
-    LOG_INFO('Time Taken:{} s'.format(time.time()-start_time),p_color='yellow')
+    
 #-----------------------------------------------------------------------------------------------------------------------------------
 def crop_len(nb_data,batch_size):
     return (nb_data//batch_size)*batch_size
@@ -75,14 +74,15 @@ def split_len(factor,nb_data):
     return  nb_data - int(factor*nb_data)    
 
 def tfcreate(paths,DS,mode):
+    _pbar=ProgressBar()
     if mode=='test':
         new_paths=paths
     else:
         new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
 
-    LOG_INFO('Creating TFRecords for {} Data'.format(mode))
+    LOG_INFO('Creating TFRecords for {} Data'.format(mode),rep=True)
     fs=DS.STATICS.file_size
-    for i in range(0,len(new_paths),fs):
+    for i in _pbar(range(0,len(new_paths),fs)):
         image_paths= new_paths[i:i+fs]        
         r_num=i // fs
         to_tfrecord(image_paths,DS,mode,r_num)

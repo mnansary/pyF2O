@@ -1,9 +1,9 @@
 {
     "ARGS":
     {
-        "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000/",
-        "MICC-F220"         : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220/",
-        "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/"
+        "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/Data/MICC-F2000/",
+        "MICC-F220"         : "/home/ansary/RESEARCH/F2O/Data/MICC-F220/",
+        "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/Data/"
     },
     "STATICS":
     {

@@ -17,9 +17,14 @@ import tensorflow as tf
 import time
 
 from functools import partial
+from progressbar import ProgressBar
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def LOG_INFO(log_text,p_color='green'):
-    print(colored('#    LOG:','blue')+colored(log_text,p_color))
+def LOG_INFO(log_text,p_color='green',rep=True):
+    if rep:
+        print(colored('#    LOG:','blue')+colored(log_text,p_color))
+    else:
+        print(colored('#    LOG:','blue')+colored(log_text,p_color),end='\r')
+
 
 def plot_data(img,gt,pred,net,save_flag=None,show_imdt=False) :
     plt.figure(net)
@@ -75,7 +80,8 @@ class DataSet(object):
                 print(colored('!!! An exception occurred while renaming {}'.format(file_to_rename),'cyan'))
                 print(colored(e,'green'))
         else:
-            LOG_INFO('Problematic File Already Renamed')       
+            pass 
+              
         # list image paths and idens
         self.prob_idens=str(self.STATICS.prob_idens).split(',')
         self.IMG_Paths=[]
@@ -100,8 +106,9 @@ class DataSet(object):
                 self.GT_Idens.append(base_name)
 
     def create(self):
+        _pbar=ProgressBar()
         rotation_angles=[angle for angle in range(self.STATICS.rot_angle_start,self.STATICS.rot_angle_end,self.STATICS.rot_angle_step)]
-        for img_path in self.IMG_Paths:
+        for img_path in _pbar(self.IMG_Paths):
             #Get IMG and GT paths
             base_path,_=os.path.splitext(img_path)
             base_name=os.path.basename(base_path)
@@ -204,15 +211,15 @@ class DataSet(object):
     def __saveData(self,data,identifier,file_name):
         if identifier   =='image':
             save_dir    =   self.image_dir
-            p_color     =   'green'
+            #p_color     =   'green'
         elif identifier =='target':
             save_dir    =   self.target_dir
-            p_color     =   'blue'
+            #p_color     =   'blue'
         else:
             raise ValueError('Identifier not Correct(image/target)')
         file_path=os.path.join(save_dir,file_name+'.png')
         imageio.imsave(file_path,data)
-        LOG_INFO('SAVED {} MODE :{} TYPE:{}'.format(file_name+'.png',self.mode,identifier),p_color=p_color) 
+        #LOG_INFO('SAVED {} MODE :{} TYPE:{}'.format(file_name+'.png',self.mode,identifier),p_color=p_color,rep=True) 
     
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -236,15 +243,15 @@ def to_tfrecord(image_paths,DS,mode,r_num):
     # Create Saving Directory based on mode
     save_dir=create_dir(DS.base_save_dir,'tfrecord')
     save_dir=create_dir(save_dir,mode)
-    LOG_INFO('TFRECORD:DIR: {}'.format(save_dir),p_color='yellow')
+    #LOG_INFO('TFRECORD:DIR: {}'.format(save_dir),p_color='yellow')
     # Tfrecord Info
     tfrecord_name='{}_{}.tfrecord'.format(mode,r_num)
     tfrecord_path=os.path.join(save_dir,tfrecord_name) 
     with tf.io.TFRecordWriter(tfrecord_path) as writer:    
         for image_path in image_paths:
-            LOG_INFO('Converting: {} '.format(image_path))
+            #LOG_INFO('Converting: {} '.format(image_path))
             target_path=str(image_path).replace('image','target')
-            LOG_INFO('Converting: {} '.format(target_path),p_color='cyan')
+            #LOG_INFO('Converting: {} '.format(target_path),p_color='cyan')
             with(open(image_path,'rb')) as fid:
                 image_png_bytes=fid.read()
             with(open(target_path,'rb')) as fid:
@@ -256,7 +263,7 @@ def to_tfrecord(image_paths,DS,mode,r_num):
             example= tf.train.Example(features=features)
             serialized=example.SerializeToString()
             writer.write(serialized)   
-    LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
+    #LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 def data_input_fn(FLAGS,params): 
