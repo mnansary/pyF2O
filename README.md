@@ -5,7 +5,8 @@ Forged Image To Original Image Generation
     Author : Md. Nazmuddoha Ansary
              Shakir Hossain  
              Mohammad Bin Monjil  
-             Habibur Rahman  
+             Habibur Rahman
+             MD.Aminul Islam
              Shahriar Prince  
                   
 ![](/INFO/src_img/python.ico?raw=true )
