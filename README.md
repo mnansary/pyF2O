@@ -1,7 +1,7 @@
 # pyF2O
 Forged Image To Original Image Generation
 
-    Version: 2.2.1    
+    Version: 2.2.2    
     Author : Md. Nazmuddoha Ansary
              Shakir Hossain  
              Mohammad Bin Monjil  
@@ -16,7 +16,7 @@ Forged Image To Original Image Generation
 
 # Version and Requirements
 * numpy==1.16.4  
-* tensorflow==1.14.0        
+* tensorflow==2.0.0        
 * Python == 3.6.8
 > Create a Virtualenv and *pip3 install -r requirements.txt*
 
@@ -31,8 +31,8 @@ Forged Image To Original Image Generation
 
         "ARGS":
         {
-            "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000S/",
-            "MICC-F220"         : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220S/",
+            "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F2000/",
+            "MICC-F220"         : "/home/ansary/RESEARCH/F2O/UNZIPPED/MICC-F220/",
             "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/"
         }
 
@@ -89,7 +89,8 @@ The complete preprocessing may take huge time and also cause to crash the system
     Gnome       : 3.28.2  
 
 #  GCS
-![](/INFO/src_img/bucket.ico?raw=true) TPU training with tfrecord is not implemented for **Tensorflow  1.14.0** as of  **21-10-2019** and  **Tensorflow 2.0** does not have TPU support yet. Hopefully local implementation will be available soon enough. For using TPU in colab, a **bucket** must be created in **GCS** and connected for :
+![](/INFO/src_img/bucket.ico?raw=true) TPU training with tfrecord is not implemented for local implementation.
+For using TPU in colab, a **bucket** must be created in **GCS** and connected for :
 *   saving model checkpoints 
 *   loading data
 
@@ -102,6 +103,16 @@ The complete preprocessing may take huge time and also cause to crash the system
 ![](/INFO/p2p.jpg?raw=true)  
 
 Pix2Pix is based on the original paper: [Image-to-Image Translation with Conditional Adversarial Nets](https://phillipi.github.io/pix2pix/)
+
+* **Generator** structre
+
+![](/INFO/gen.png?raw=true)  
+
+* **Discriminator** structre
+
+![](/INFO/dis.png?raw=true)  
+
+
 ## Acknowledgement
 The implementation used here is completely borrowed (with very very minimal changes) from [@agermanidis's implementation of pix2pix-tpu ](https://github.com/agermanidis/pix2pix-tpu)  
 For GPU in colab: [Follow This Link](https://www.tensorflow.org/tutorials/generative/pix2pix)   
