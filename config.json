@@ -3,7 +3,7 @@
     {
         "MICC-F2000"        : "/home/ansary/RESEARCH/F2O/Data/MICC-F2000/",
         "MICC-F220"         : "/home/ansary/RESEARCH/F2O/Data/MICC-F220/",
-        "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/Data/"
+        "OUTPUT_DIR"        : "/home/ansary/RESEARCH/F2O/Data/ORG/"
     },
     "STATICS":
     {
@@ -12,12 +12,12 @@
         "image_dim"         : 256,
         "nb_channels"       : 3,
         "rot_angle_start"   : 0,
-        "rot_angle_end"     : 30,
-        "rot_angle_step"    : 5,
+        "rot_angle_end"     : 1,
+        "rot_angle_step"    : 1,
         "shade_factor"      : 20,
-        "file_size"         : 768,
+        "file_size"         : 500,
         "batch_size"        : 128,
-        "fid_num"           : 4,
+        "fid_num"           : 1,
         "rename_data"       : "nikon7_scale.jpg,nikon_7_scale.jpg",
         "prob_idens"        : "P1000231,DSCN47"
 

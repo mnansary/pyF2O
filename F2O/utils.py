@@ -134,7 +134,7 @@ class DataSet(object):
         return rmin,rmax,cmin,cmax
     
     def __pad(self,rmin,rmax,cmin,cmax,diff):
-        _pad=128
+        _pad=64
         cmin -=_pad
         rmin -=_pad
         cmax +=_pad
@@ -266,17 +266,17 @@ def to_tfrecord(image_paths,DS,mode,r_num):
     #LOG_INFO('Finished Writing {}'.format(tfrecord_name),p_color='red')
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------
-def data_input_fn(FLAGS,params): 
+def data_input_fn(FLAGS): 
     '''
     This Function generates data from provided FLAGS
     FLAGS must include:
         TFRECORDS_PATH  = Path to tfrecords
-        MODE            = 'train/eval'
+        MODE            = 'train/test'
         IMAGE_DIM       = Dimension of Image
         NB_CHANNELS     = Depth of Image
         BATCH_SIZE      = batch size for traning
         SHUFFLE_BUFFER  = Buffer Size > Batch Size
-        params          = Needed for estimator to pass batch size
+        DEBUG           = check data and model train for keras simple model
     '''
     
     def _parser(example):
@@ -298,9 +298,11 @@ def data_input_fn(FLAGS,params):
 
     file_paths=glob(os.path.join(FLAGS.TFRECORDS_DIR,FLAGS.MODE,'*.tfrecord'))
     dataset = tf.data.TFRecordDataset(file_paths)
-    dataset = dataset.shuffle(FLAGS.SHUFFLE_BUFFER,reshuffle_each_iteration=True)
     dataset = dataset.map(_parser)
-    dataset = dataset.repeat()
+    if FLAGS.MODE=='train':
+        dataset = dataset.shuffle(FLAGS.SHUFFLE_BUFFER,reshuffle_each_iteration=True)
+    if FLAGS.DEBUG:
+        dataset = dataset.repeat()
     dataset = dataset.batch(FLAGS.BATCH_SIZE,drop_remainder=True)
     return dataset
 

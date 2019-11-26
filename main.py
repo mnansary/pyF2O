@@ -6,12 +6,12 @@ from __future__ import print_function
 from termcolor import colored
 #--------------------------------------------------------------------------------------------------------------------------------------------------
 import argparse
-parser = argparse.ArgumentParser(description='Forged Image To Original Image Reconstruction',
+parser = argparse.ArgumentParser(description='Preprocessing Script:Forged Image To Original Image Reconstruction',
                                 formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("exec_flag", 
                     help='''
                             Execution Flag for creating files 
-                            Available Flags: prep,train,eval,comb
+                            Available Flags: png,tfrecords,comb
                             png       = create images
                             tfrecords = create tfrecords
                             comb      = combined execution
@@ -21,6 +21,7 @@ parser.add_argument("exec_flag",
                             2) tfrecords
                             
                             ''')
+
 args = parser.parse_args()
 #-----------------------------------------------------Load Config----------------------------------------------------------
 import json
@@ -75,11 +76,13 @@ def split_len(factor,nb_data):
 
 def tfcreate(paths,DS,mode):
     _pbar=ProgressBar()
+    '''
     if mode=='test':
         new_paths=paths
     else:
         new_paths=paths[:crop_len(len(paths),DS.STATICS.batch_size)]
-
+    '''
+    new_paths=paths
     LOG_INFO('Creating TFRecords for {} Data'.format(mode),rep=True)
     fs=DS.STATICS.file_size
     for i in _pbar(range(0,len(new_paths),fs)):
