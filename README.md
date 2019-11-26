@@ -88,15 +88,13 @@ The complete preprocessing may take huge time and also cause to crash the system
     Graphics    : Intel® UHD Graphics 620 (Kabylake GT2)  
     Gnome       : 3.28.2  
 
+#  GCS	
+![](/INFO/src_img/bucket.ico?raw=true) Training with tfrecord is not implemented for local implementation.	
+For using colab, a **bucket** must be created in **GCS** and connected for:
+* tfrecords
+* checkpoints 	
 
-# pix2pix
-
-![](/INFO/p2p.jpg?raw=true)  
-
-[Image Source](https://neurohive.io/en/popular-networks/pix2pix-image-to-image-translation/)    
-
-Original paper: [Image-to-Image Translation with Conditional Adversarial Nets](https://phillipi.github.io/pix2pix/)  
-Implementation based on [official tensorflow tutorial](https://colab.research.google.com/github/tensorflow/docs/blob/master/site/en/tutorials/generative/pix2pix.ipynb)  
+# Networks
 
 * **Generator** structre
 
@@ -105,6 +103,18 @@ Implementation based on [official tensorflow tutorial](https://colab.research.go
 * **Discriminator** structre
 
 ![](/INFO/dis.png?raw=true)  
+
+# pix2pix
+
+![](/INFO/p2p.jpg?raw=true)  
+
+[Image Source](https://neurohive.io/en/popular-networks/pix2pix-image-to-image-translation/)    
+
+Original paper: [Image-to-Image Translation with Conditional Adversarial Nets](https://phillipi.github.io/pix2pix/)  
+
+Implementation based on [official tensorflow tutorial](https://colab.research.google.com/github/tensorflow/docs/blob/master/site/en/tutorials/generative/pix2pix.ipynb)  
+
+* run **pix2pix_gpu.ipynb** in *colab*
 
 
 

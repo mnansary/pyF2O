@@ -134,7 +134,7 @@ class DataSet(object):
         return rmin,rmax,cmin,cmax
     
     def __pad(self,rmin,rmax,cmin,cmax,diff):
-        _pad=64
+        _pad=16
         cmin -=_pad
         rmin -=_pad
         cmax +=_pad
@@ -305,5 +305,3 @@ def data_input_fn(FLAGS):
         dataset = dataset.repeat()
     dataset = dataset.batch(FLAGS.BATCH_SIZE,drop_remainder=True)
     return dataset
-
-

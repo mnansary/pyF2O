@@ -15,8 +15,8 @@
         "rot_angle_end"     : 1,
         "rot_angle_step"    : 1,
         "shade_factor"      : 20,
-        "file_size"         : 500,
-        "batch_size"        : 128,
+        "file_size"         : 700,
+        "batch_size"        : 1,
         "fid_num"           : 1,
         "rename_data"       : "nikon7_scale.jpg,nikon_7_scale.jpg",
         "prob_idens"        : "P1000231,DSCN47"
