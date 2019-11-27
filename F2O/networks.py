@@ -132,7 +132,8 @@ def Discriminator(IMAGE_DIM=256,NB_CHANNELS=3):
                                   kernel_initializer=initializer)(zero_pad2) # (bs, 30, 30, 1)
 
     return tf.keras.Model(inputs=[inp, tar], outputs=last)
-
+#---------------------------------------------------------------------------------------------------------------------------
+loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 #---------------------------------------------------------------------------------------------------------------------------
 def generator_loss(disc_generated_output, gen_output, target,LAMBDA=100):
     gan_loss = loss_object(tf.ones_like(disc_generated_output), disc_generated_output)
@@ -144,7 +145,6 @@ def generator_loss(disc_generated_output, gen_output, target,LAMBDA=100):
 
     return total_gen_loss, gan_loss, l1_loss
 #---------------------------------------------------------------------------------------------------------------------------
-loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 def discriminator_loss(disc_real_output, disc_generated_output):
     real_loss = loss_object(tf.ones_like(disc_real_output), disc_real_output)
     generated_loss = loss_object(tf.zeros_like(disc_generated_output), disc_generated_output)
